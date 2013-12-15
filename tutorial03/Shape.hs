@@ -5,6 +5,7 @@ import Graphics.Rendering.OpenGL (Vertex2(..))
 data Shape = Circle Pivot Radius
            | Square Pivot Radius
            | Triangle Vertex Vertex Vertex
+           | Polygon [Vertex]
            deriving Show
 
 type Vertex = Vertex2 Float

@@ -6,22 +6,7 @@ import Control.Monad
 import LoadShaders
 import Foreign.Marshal.Array
 import Foreign.Ptr
-import System.IO
 import Foreign.Storable
-
-
-checkError :: String -> IO ()
-checkError functionName = get errors >>= mapM_ reportError
-  where reportError e =
-          hPutStrLn stderr (showError e ++ " detected in " ++ functionName)
-        showError (Error category message) =
-          "GL error " ++ show category ++ " (" ++ message ++ ")"
-
-
-vertexBufferData :: [GLfloat]
-vertexBufferData =  [ 0.0,  0.8, 
-                     -0.8, -0.8, 
-                      0.8, -0.8]
 
 
 bufferOffset :: Integral a => a -> Ptr b
@@ -62,7 +47,6 @@ initResources = do
     (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
   vertexAttribArray vPosition $= Enabled
 
-  checkError "initResources"
   return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
                     
@@ -94,7 +78,6 @@ onDisplay descriptor@(Descriptor triangles firstIndex numVertices) = do
   bindVertexArrayObject $= Just triangles
   drawArrays Triangles firstIndex numVertices
   GLFW.swapBuffers
-  checkError "display"
 
   p <- GLFW.getKey GLFW.ESC
   unless (p == GLFW.Press) $ onDisplay descriptor
