@@ -1,0 +1,5 @@
+toDrawable :: Instanceable -> Drawable
+toDrawable (Square pos side) = [
+    Vertex2 (-0.90) (-0.90),  -- Triangle 1
+    Vertex2 ( 0.90) (-0.90),
+    Vertex2 ( 0.90) (  0.90) ]

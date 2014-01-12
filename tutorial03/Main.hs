@@ -7,7 +7,7 @@ import LoadShaders
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
-import Shape
+import HNGL
 
 
 bufferOffset :: Integral a => a -> Ptr b
@@ -22,14 +22,7 @@ initResources = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    let vertices = toGraphics triangle' -- | This is the beginning of a journey
-    -- let vertices = [
-    --       Vertex2 (-0.90) (-0.90),  -- Triangle 1
-    --       Vertex2   0.85  (-0.90),
-    --       Vertex2 (-0.90)   0.85 ,
-    --       Vertex2   0.90  (-0.85),  -- Triangle 2
-    --       Vertex2   0.90    0.90 ,
-    --       Vertex2 (-0.85)   0.90 ] :: [Vertex2 GLfloat]
+    let vertices = toDrawable (Square v1 1.0)
         numVertices = length vertices
 
     arrayBuffer <- genObjectName
