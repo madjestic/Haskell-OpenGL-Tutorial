@@ -1,0 +1,87 @@
+module HNGL.Data where
+
+import Graphics.Rendering.OpenGL (Vertex2(..))
+import Data.Angle
+
+
+-- | Libraty works like this:
+-- |             Triangles   -> Triangles         
+-- | Editable -> Instancable -> Drawabale
+-- |                  Shapes -> Pictures
+
+-- | basic shapes types should be of 2 kinds:
+-- | Shapes  positioned by center
+-- | Shapes' positioned by bottom-left corner
+data Instanceable = Circle Position Radius
+                  | Square Position Side           
+                  deriving Show
+
+
+data Editable = Triangle [Vertex]
+              | Quad     [Vertex] -- | BL vertex TR vertex
+              | Polygon  [Vertex] -- | [Triangle] ?
+              deriving Show
+                       
+
+type Vertex   = Vertex2 Float
+type Drawable = [Vertex]
+
+-- type Triangles = [Triangle]
+type Position = (Float, Float)
+type Point    = (Float, Float)
+type Radius   = Float
+type Side     = Float
+
+
+vertex :: Float -> Float -> Vertex
+vertex = Vertex2
+
+
+triangle ::  [Vertex] -> Editable
+triangle = Triangle
+
+
+square :: Position -> Float -> [(Float, Float)]
+square pos side = [p1, p2, p3,
+                   p1, p3, p4]
+    where          
+        x = fst pos
+        y = snd pos
+        r = side/2 
+        p1 = (x + r, y + r)
+        p2 = (x - r, y + r)
+        p3 = (x - r, y - r)
+        p4 = (x + r, y - r)
+
+
+angles :: Int -> [Float]
+angles n = zipWith (/) (repeat 360) [1..n']
+        where n' = fromIntegral n
+
+
+-- |[Angles a] -> [Sin a, Cos a]
+-- arc :: [Float] -> [Float, Float]
+arc = map (\x -> [cos x, sin x])
+
+-- | we get angles, then we do x = cos a*k, y = sin a*k | k <- [1..n]
+
+circle :: Position -> Float -> Int -> [(Float, Float)]
+circle = undefined
+
+-- [pos, p0, p1,
+--  pos, p1, p2,
+--  pos, p2, p3] 
+
+toDrawable :: Instanceable -> Drawable
+toDrawable (Square pos side) = 
+    let arr = unzip $ square pos side
+    in uncurry (zipWith vertex) arr
+
+-- toDrawable (Square pos side) =
+--     map vertex [ (-0.90, -0.90), 
+--                  ( 0.90, -0.90),
+--                  ( 0.90,  0.90) ]
+
+v1 = vertex (-0.90) (-0.90)
+v2 = vertex 0.85  (-0.90)
+v3 = vertex (-0.90)   0.85
