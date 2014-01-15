@@ -9,20 +9,21 @@ import Foreign.Storable
 import HNGL.LoadShaders
 import HNGL.Data
 
-bufferOffset :: Integral a => a -> Ptr b
-bufferOffset = plusPtr nullPtr . fromIntegral
-
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
 
-initResources :: IO Descriptor
-initResources = do
+bufferOffset :: Integral a => a -> Ptr b
+bufferOffset = plusPtr nullPtr . fromIntegral
+
+
+initResources :: [Vertex2 Float] -> IO Descriptor
+initResources vs = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
 
-    let vertices = toDrawable (Circle (0.0, 0.0) 1.0 10)--(Square (0.0, 0.0) 1.0)
+    let vertices = vs
         numVertices = length vertices
 
     arrayBuffer <- genObjectName
@@ -44,7 +45,7 @@ initResources = do
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
-                    
+
 resizeWindow :: Size -> IO ()
 resizeWindow size@(GL.Size w h) =
     do
@@ -54,13 +55,13 @@ resizeWindow size@(GL.Size w h) =
         GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
 
 
-draw :: IO ()
-draw = do
+draw :: Drawable -> IO ()
+draw xs = do
     GLFW.initialize
     GLFW.openWindow (GL.Size 640 480) [] GLFW.Window
     GLFW.windowTitle $= "GLFW Demo"
     GLFW.windowSizeCallback $= resizeWindow
-    descriptor <- initResources
+    descriptor <- initResources xs
     onDisplay descriptor
     GLFW.closeWindow
     GLFW.terminate
@@ -73,6 +74,5 @@ onDisplay descriptor@(Descriptor triangles firstIndex numVertices) = do
     bindVertexArrayObject $= Just triangles
     drawArrays Triangles firstIndex numVertices
     GLFW.swapBuffers
-
     p <- GLFW.getKey GLFW.ESC
     unless (p == GLFW.Press) $ onDisplay descriptor

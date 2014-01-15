@@ -21,29 +21,31 @@ initResources = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    let vertices = toDrawable (Square (0.0, 0.0) 1.0)
+
+    -- | let vertices = toDrawable (Circle (0.0, 0.0) 1.0 100)--(Square (0.0, 0.0) 1.0) 
+     let vertices = toDrawable (Circle (0.0, 0.0) 1.0 100) --(Square (0.0, 0.0) 1.0)
         numVertices = length vertices
 
-    arrayBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just arrayBuffer
-    withArray vertices $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head vertices))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)
+     arrayBuffer <- genObjectName
+     bindBuffer ArrayBuffer $= Just arrayBuffer
+     withArray vertices $ \ptr -> do
+         let size = fromIntegral (numVertices * sizeOf (head vertices))
+         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
 
-    program <- loadShaders [
-        ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
-        ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
-    currentProgram $= Just program
+     program <- loadShaders [
+         ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
+         ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
+     currentProgram $= Just program
 
-    let firstIndex = 0
-        vPosition = AttribLocation 0
-    vertexAttribPointer vPosition $=
-        (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
-    vertexAttribArray vPosition $= Enabled
+     let firstIndex = 0
+         vPosition = AttribLocation 0
+     vertexAttribPointer vPosition $=
+         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
+     vertexAttribArray vPosition $= Enabled
 
-    return $ Descriptor triangles firstIndex (fromIntegral numVertices)
+     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
-                    
+
 resizeWindow :: Size -> IO ()
 resizeWindow size@(GL.Size w h) =
     do
