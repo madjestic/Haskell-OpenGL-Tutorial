@@ -4,7 +4,4 @@ using the foundation, layed by tutorials 00-02
 HNGL is an acronym, standing for HNGL is Not a Graphics Library
 
 It is a set of modules, meant to provide basic geometric shapes rendering.
-Currently only squares and circles drawing is supported.
-
-I try keeping files as clean and logical as possible.  If you enjoy early
-prototypes and wish to contribute - you are most welcome.
+At the stage of tutorial03 squares and circles drawing support is introduced.
