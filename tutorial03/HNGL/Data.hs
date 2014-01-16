@@ -25,8 +25,8 @@ import Graphics.Rendering.OpenGL (Vertex2(..))
 
 
 
-data Instanceable = Circle Position Radius Divisions
-                  | Square Position Side           
+data Instanceable = Circle Point Radius Divisions
+                  | Square Point Side           
                   deriving Show
 
 
@@ -39,7 +39,6 @@ data Editable = Triangle [Point]
 type Drawable = [Vertex2 Float]
 
 
-type Position  = (Float, Float)
 type Point     = (Float, Float)
 type Radius    = Float
 type Side      = Float
@@ -55,7 +54,7 @@ triangle ::  [Point] -> Editable
 triangle = Triangle
 
 
-square :: Position -> Float -> [(Float, Float)]
+square :: Point -> Float -> [(Float, Float)]
 square pos side = [p1, p2, p3,
                    p1, p3, p4]
     where          
@@ -68,14 +67,16 @@ square pos side = [p1, p2, p3,
         p4 = (x + r, y - r)
 
 
-circle :: Int -> [(Float, Float)]
-circle div =
+circle :: Point -> Float -> Int -> [(Float, Float)]
+circle pos r div =
     let
+        x = fst pos
+        y = snd pos
         div'    = fromIntegral div
-        sines   = map sin [0.0, 2*pi/div' .. 2*pi]
-        cosines = map cos [0.0, 2*pi/div' .. 2*pi]
+        sines   = map ((y +).(r *).sin) [0.0, 2*pi/div' .. 2*pi]
+        cosines = map ((x +).(r *).cos) [0.0, 2*pi/div' .. 2*pi]
     in
-     zip sines cosines 
+     zip sines cosines
 
 
 toDrawable :: Instanceable -> Drawable
@@ -86,5 +87,5 @@ toDrawable (Circle pos r div) =
         insertpos (x:y:[]) = [[(0.0,0.0),x,y]]
         insertpos (x:y:xs) = [[(0.0,0.0),x,y]] ++ insertpos (xs)
     in 
-     map vertex $ concat $ insertpos $ abbc $ circle div
+     map vertex $ concat $ insertpos $ abbc $ circle pos r div
 
