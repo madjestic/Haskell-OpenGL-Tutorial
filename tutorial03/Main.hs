@@ -1,12 +1,16 @@
 module Main where
 
-import HNGL.Data
-import HNGL.Rendering
+import NGL.Shape
+import NGL.Rendering
+import NGL.TinyMath
 
-
-display :: [Instanceable] -> IO ()
-display xs = draw $ concat $ map toDrawable xs
 
 main :: IO ()
 main = do
-    display [(Square (-0.5, -0.5) 1.0),(Circle (0.5, 0.5) 0.5 100)]
+     let prims = [  shape $ Square (-0.5, -0.5) 1.0
+                  , shape $ Circle (0.5, 0.5) 0.5 10
+                  , shape $ Rect (-1.0,0.33) (0.0,0.66)
+                  , rotate (-45) $ shape $ Line (0.0,-0.5) (1.0,-0.5) 0.05
+                  --, shape $ Polyline [(0.0,-0.5),(0.5,0.0),(1.0,-0.5)] 0.05 
+                 ]
+     draw $ toVertex2 prims 

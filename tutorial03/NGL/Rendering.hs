@@ -1,4 +1,4 @@
-module HNGL.Rendering where
+module NGL.Rendering where
 
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
@@ -7,7 +7,7 @@ import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
 import HNGL.LoadShaders
-import NGL.Data
+import NGL.Shape
 
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
@@ -55,13 +55,13 @@ resizeWindow size@(GL.Size w h) =
         GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
 
 
-draw :: Drawable -> IO ()
-draw xs = do
+draw :: Picture -> IO ()
+draw vs = do
     GLFW.initialize
     GLFW.openWindow (GL.Size 640 480) [] GLFW.Window
     GLFW.windowTitle $= "GLFW Demo"
     GLFW.windowSizeCallback $= resizeWindow
-    descriptor <- initResources xs
+    descriptor <- initResources vs
     onDisplay descriptor
     GLFW.closeWindow
     GLFW.terminate

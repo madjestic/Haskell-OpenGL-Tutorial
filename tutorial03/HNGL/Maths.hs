@@ -1,0 +1,15 @@
+--------------------------------------------------------------------------------
+-- |
+-- | Module      :  Data
+-- | Copyright   :  (c) Vladimir Lopatin 2013
+-- | License     :  BSD3
+-- |
+-- | Maintainer  :  Vladimir Lopatin <madjestic13@gmail.com>
+-- | Stability   :  experimental
+-- | Portability :  untested
+-- |
+-- | TML tiny math library
+-- | basic shapes types should be of 2 kinds:
+-- | Shapes  positioned by center
+-- | Shapes' positioned by bottom-left corner--
+--------------------------------------------------------------------------------
