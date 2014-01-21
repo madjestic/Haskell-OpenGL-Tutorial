@@ -13,7 +13,7 @@
 --
 --------------------------------------------------------------------------------
 
-module HNGL.LoadShaders (
+module NGL.LoadShaders (
    ShaderSource(..), ShaderInfo(..), loadShaders
 ) where
 

@@ -6,7 +6,7 @@ import Control.Monad
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
-import HNGL.LoadShaders
+import NGL.LoadShaders
 import NGL.Shape
 
 
@@ -21,7 +21,6 @@ initResources :: [Vertex2 Float] -> IO Descriptor
 initResources vs = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
-
 
     let vertices = vs
         numVertices = length vertices
