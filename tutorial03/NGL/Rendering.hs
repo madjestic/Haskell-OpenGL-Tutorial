@@ -54,6 +54,23 @@ resizeWindow size@(GL.Size w h) =
         GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
 
 
+openWindow :: String -> (Int, Int) -> IO ()
+openWindow title (sizex,sizey) = do
+    GLFW.initialize
+    GLFW.openWindow (GL.Size 512 512) [] GLFW.Window
+    GLFW.windowTitle $= "GLFW Demo"
+    GLFW.windowSizeCallback $= resizeWindow
+    
+drawInWindow :: [[Point]] -> IO ()
+drawInWindow vs = do
+    descriptor <- initResources $ toVertex2 vs
+    onDisplay descriptor
+    
+closeWindow :: IO ()
+closeWindow = do
+    GLFW.closeWindow
+    GLFW.terminate
+
 draw :: Picture -> IO ()
 draw vs = do
     GLFW.initialize
