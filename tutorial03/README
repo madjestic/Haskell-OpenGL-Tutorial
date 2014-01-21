@@ -7,4 +7,4 @@ It is a set of modules, meant to provide basic geometric shapes rendering.
 At the stage of tutorial03 basic Shapes drawing support is introduced: triangles,
 rectangles, circles and polylines.
 
-![alt tag](https://github.com/madjestic/Haskell-OpenGL-Tutorial/blob/master/tutorial03/NGL.png)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/blob/master/tutorial03/NGL.png)
