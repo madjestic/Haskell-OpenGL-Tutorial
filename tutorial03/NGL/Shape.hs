@@ -56,7 +56,7 @@ shape (Square   pos side)     =  square pos side
 shape (Circle   pos rad divs) =  circle pos rad divs
 shape (Rect     bl  tr)       =  rect   bl  tr        -- | bl := bottom left, tr := top right
 shape (Line     p1  p2  w)    =  line   p1  p2  w
-shape (Polyline ps  w)        =  polyline ps w
+-- shape (Polyline ps  w)        =  polyline ps w
 
 
 -- | Group list into indevidual pairs: [1,2,3,4] => [(1,2),(3,4)]. 
@@ -69,8 +69,8 @@ pairs (x:y:xs) = (x,y):pairs xs
 fromPairs [] = []
 fromPairs ((x,y):xs) = x:y:fromPairs xs
 
-polyline :: [Point] -> Float -> [Point]
-polyline ps w = concatMap (\(x,y) -> line x y w) $ pairs $ abbcca ps
+-- polyline :: [Point] -> Float -> [Point]
+-- polyline ps w = concatMap (\(x,y) -> line x y w) $ pairs $ abbcca ps
 
 
 vertex :: Point -> Vertex2 Float
@@ -110,7 +110,7 @@ circle pos r divs =
         concat $ insertpos $ abbcca $ zip sines cosines
             where
                   insertpos (x:y:[]) = [[pos,x,y]]
-                  insertpos (x:y:xs) = [[pos,x,y]] : insertpos xs
+                  insertpos (x:y:xs) = [pos,x,y] : insertpos xs
 
 
 rect :: Point -> Point -> [Point]
@@ -118,8 +118,8 @@ rect (x1,y1) (x2,y2) = [(x2,y2),(x1,y2),(x1,y1),
                         (x2,y2),(x1,y1),(x2,y1)]
 
 
-line :: Point -> Point -> Float -> [Point]
-line (x1,y1) (x2,y2) w = rect (0.0,-w/2) (len,w/2)
-     where 
-           len = sqrt((x1-x2)^2+ (y1-y2)^2)
-           
+-- line :: Point -> Point -> Float -> [Point]
+-- line (x1,y1) (x2,y2) w = rect (0.0,-w/2) (len,w/2)
+--      where 
+--            len   = sqrt((x1-x2)^2+ (y1-y2)^2)
+

@@ -50,12 +50,6 @@ len :: (Float, Float) -> Float
 len (x,y) = sqrt(x*x+y*y)
 
 
--- | Returns angle of the normalized vector.
--- | Vector argument needs to be normalized.
-angleFromVector :: (Float, Float) -> Float
-angleFromVector (x,_) = acos x * 180 / pi
-
-
 -- | multiply matrix by vector
 mulMatrVect :: Matrix2D -> (Float, Float) -> (Float, Float)
 mulMatrVect (x1,x2,y1,y2) (x,y) = ((x1+x2)*x,(y1+y2)*y)
