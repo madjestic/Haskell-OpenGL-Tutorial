@@ -58,7 +58,7 @@ resizeWindow size@(GL.Size w h) =
 draw :: Picture -> IO ()
 draw vs = do
     GLFW.initialize
-    GLFW.openWindow (GL.Size 640 480) [] GLFW.Window
+    GLFW.openWindow (GL.Size 512 512) [] GLFW.Window
     GLFW.windowTitle $= "GLFW Demo"
     GLFW.windowSizeCallback $= resizeWindow
     descriptor <- initResources vs

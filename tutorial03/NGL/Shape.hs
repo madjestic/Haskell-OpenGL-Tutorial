@@ -56,21 +56,23 @@ shape (Square   pos side)     =  square pos side
 shape (Circle   pos rad divs) =  circle pos rad divs
 shape (Rect     bl  tr)       =  rect   bl  tr        -- | bl := bottom left, tr := top right
 shape (Line     p1  p2  w)    =  line   p1  p2  w
--- shape (Polyline ps  w)        =  polyline ps w
+shape (Polyline ps  w)        =  polyline ps w
 
 
 -- | Group list into indevidual pairs: [1,2,3,4] => [(1,2),(3,4)]. 
 --   Works only with even number of elements
+pairs :: [t] -> [(t, t)]
 pairs [] = []
 pairs [x] = error "Non-even list for pair function"
 pairs (x:y:xs) = (x,y):pairs xs
 
 -- | Undo pairs function
+fromPairs :: [(a, a)] -> [a]
 fromPairs [] = []
 fromPairs ((x,y):xs) = x:y:fromPairs xs
 
--- polyline :: [Point] -> Float -> [Point]
--- polyline ps w = concatMap (\(x,y) -> line x y w) $ pairs $ abbcca ps
+polyline :: [Point] -> Float -> [Point]
+polyline ps w = concatMap (\(x,y) -> line x y w) $ pairs $ abbcca ps
 
 
 vertex :: Point -> Vertex2 Float
@@ -118,8 +120,10 @@ rect (x1,y1) (x2,y2) = [(x2,y2),(x1,y2),(x1,y1),
                         (x2,y2),(x1,y1),(x2,y1)]
 
 
--- line :: Point -> Point -> Float -> [Point]
--- line (x1,y1) (x2,y2) w = rect (0.0,-w/2) (len,w/2)
---      where 
---            len   = sqrt((x1-x2)^2+ (y1-y2)^2)
+line :: Point -> Point -> Float -> [Point]
+line (x1,y1) (x2,y2) w = map (addVect (x1,y1)) $ rotate2D' theta $ rect (0.0,-w/2) (len,w/2) -- rotation is wrong
+     where 
+           (x,y) = normalize $ ((x2-x1),(y2-y1))
+           theta = signum y * acos x                               -- | angle in radians
+           len   = sqrt((x2-x1)^2+ (y2-y1)^2)
 

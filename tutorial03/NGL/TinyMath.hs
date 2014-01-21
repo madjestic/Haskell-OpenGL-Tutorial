@@ -53,3 +53,7 @@ len (x,y) = sqrt(x*x+y*y)
 -- | multiply matrix by vector
 mulMatrVect :: Matrix2D -> (Float, Float) -> (Float, Float)
 mulMatrVect (x1,x2,y1,y2) (x,y) = ((x1+x2)*x,(y1+y2)*y)
+
+
+addVect :: (Float, Float) -> (Float, Float) -> (Float, Float)
+addVect (x1,y1) (x2,y2) = (x1+x2, y1+y2)
