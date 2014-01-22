@@ -14,6 +14,6 @@ main = do
                                       ,(1.0,-0.33)] 
                                       0.01 
                  ]
-     openWindow "My First Window" (512,512)
+     createWindow "My First Window" (512,512)
      drawInWindow prims
      closeWindow

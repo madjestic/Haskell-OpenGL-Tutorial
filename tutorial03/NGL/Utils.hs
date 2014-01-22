@@ -70,3 +70,5 @@ pairs (x:y:xs) = (x,y):pairs xs
 fromPairs :: [(a, a)] -> [a]
 fromPairs [] = []
 fromPairs ((x,y):xs) = x:y:fromPairs xs
+
+spaceClose :: 
