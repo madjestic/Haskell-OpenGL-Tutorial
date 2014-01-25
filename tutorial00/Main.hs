@@ -3,18 +3,16 @@ import Graphics.UI.GLFW as GLFW
 
 main :: IO ()
 main = do
-  GLFW.initialize
-  GLFW.openWindow (GL.Size 640 480) [] GLFW.Window
-  GLFW.windowTitle $= "GLFW Demo"
-  onDisplay
-  GLFW.closeWindow
+  GLFW.init
+  GLFW.defaultWindowHints
+  Just win <- GLFW.createWindow 640 480 "GLFW Demo" Nothing Nothing
+  onDisplay win
+  GLFW.destroyWindow win
   GLFW.terminate
 
-
-onDisplay :: IO ()
-onDisplay = do
+onDisplay :: Window -> IO ()
+onDisplay win = do
   GL.clearColor $= Color4 1 0 0 1
   GL.clear [ColorBuffer]
-  GLFW.swapBuffers
-  onDisplay
-
+  GLFW.swapBuffers win
+  onDisplay win
