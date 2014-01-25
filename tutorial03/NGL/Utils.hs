@@ -71,4 +71,4 @@ fromPairs :: [(a, a)] -> [a]
 fromPairs [] = []
 fromPairs ((x,y):xs) = x:y:fromPairs xs
 
-spaceClose :: 
+--spaceClose :: 

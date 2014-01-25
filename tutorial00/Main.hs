@@ -6,6 +6,7 @@ main = do
   GLFW.init
   GLFW.defaultWindowHints
   Just win <- GLFW.createWindow 640 480 "GLFW Demo" Nothing Nothing
+  GLFW.makeContextCurrent (Just win)
   onDisplay win
   GLFW.destroyWindow win
   GLFW.terminate
