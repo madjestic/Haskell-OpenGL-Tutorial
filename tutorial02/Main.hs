@@ -1,19 +1,16 @@
-module Main where
-
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 import Control.Monad
+import System.Exit ( exitWith, ExitCode(..) )
 import LoadShaders
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
 
+data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
-
-
-data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
 
 initResources :: IO Descriptor
@@ -49,36 +46,54 @@ initResources = do
 
   return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
-                    
-resizeWindow :: Size -> IO ()
-resizeWindow size@(GL.Size w h) =
+
+resizeWindow :: GLFW.WindowSizeCallback
+resizeWindow win w h =
     do
-      GL.viewport   $= (GL.Position 0 0, size)
+      GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
       GL.matrixMode $= GL.Projection
       GL.loadIdentity
       GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
 
 
+keyPressed :: GLFW.KeyCallback 
+keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
+keyPressed _   _               _ _                     _ = return ()
+
+
+shutdown :: GLFW.WindowCloseCallback
+shutdown win = do
+  GLFW.destroyWindow win
+  GLFW.terminate
+  _ <- exitWith ExitSuccess
+  return ()
+
+
 main :: IO ()
 main = do
-  GLFW.initialize
-  GLFW.openWindow (GL.Size 640 480) [] GLFW.Window
-  GLFW.windowTitle $= "GLFW Demo"
-  GLFW.windowSizeCallback $= resizeWindow
-  descriptor <- initResources
-  onDisplay descriptor
-  GLFW.closeWindow
-  GLFW.terminate
+   GLFW.init
+   GLFW.defaultWindowHints
+   Just win <- GLFW.createWindow 640 480 "GLFW Demo" Nothing Nothing
+   GLFW.makeContextCurrent (Just win)
+   GLFW.setWindowSizeCallback win (Just resizeWindow)
+   GLFW.setKeyCallback win (Just keyPressed)
+   GLFW.setWindowCloseCallback win (Just shutdown)
+   descriptor <- initResources
+   onDisplay win descriptor
+   GLFW.destroyWindow win
+   GLFW.terminate
 
 
-onDisplay :: Descriptor -> IO ()
-onDisplay descriptor@(Descriptor triangles firstIndex numVertices) = do
+onDisplay :: Window -> Descriptor -> IO ()
+onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
   GL.clearColor $= Color4 1 0 0 1
   GL.clear [ColorBuffer]
   bindVertexArrayObject $= Just triangles
   drawArrays Triangles firstIndex numVertices
-  GLFW.swapBuffers
-
-  p <- GLFW.getKey GLFW.ESC
-  unless (p == GLFW.Press) $ onDisplay descriptor
+  GLFW.swapBuffers win
+  
+  forever $ do
+     GLFW.pollEvents
+     onDisplay win descriptor
+     
 
