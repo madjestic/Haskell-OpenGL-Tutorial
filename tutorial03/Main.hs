@@ -14,6 +14,6 @@ main = do
                                       ,(1.0,-0.33)] 
                                       0.01 
                  ]
-     createWindow "My First Window" (512,512)
-     drawInWindow prims
-     closeWindow
+     win <- createWindow "My First Window" (512,512)
+     drawInWindow win prims
+     closeWindow win
