@@ -82,6 +82,9 @@ square pos side = [p1, p2, p3,
         p2 = (x - r, y + r)
         p3 = (x - r, y - r)
         p4 = (x + r, y - r)
+        
+squareclr :: [Float]
+squareclr = [0.583,  0.771,  0.014, 0.609,  0.115,  0.436]
 
 
 abbcca :: [a] -> [a]

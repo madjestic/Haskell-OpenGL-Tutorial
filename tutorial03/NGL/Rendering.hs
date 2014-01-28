@@ -72,7 +72,7 @@ createWindow :: String -> (Int, Int) -> IO Window
 createWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
-    Just win <- GLFW.createWindow 640 480 "GLFW Demo" Nothing Nothing
+    Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
     GLFW.setKeyCallback win (Just keyPressed)
