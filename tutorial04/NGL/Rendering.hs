@@ -32,13 +32,16 @@ initResources vs = do
         let size = fromIntegral (numVertices * sizeOf (head vertices))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
 
-    let rgba = vs
-    
+    let foo = 0.5 :: Float
+    let bar = (-0.0) :: Float
+
+    let rgba = vs --[Vertex2 foo foo,Vertex2 (-0.3::Float) foo,Vertex2 (bar) (bar),Vertex2 foo foo,Vertex2 (bar) (bar),Vertex2 foo (bar)]
+
     colorBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just colorBuffer
     withArray rgba $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head rgba))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
+        bufferData ArrayBuffer $= (size, ptr, StaticRead)    
 
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
