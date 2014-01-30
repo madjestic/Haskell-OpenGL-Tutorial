@@ -33,7 +33,7 @@ initResources vs = do
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
 
     let rgba = vs
-        numVertices = length rgba
+    
     colorBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just colorBuffer
     withArray rgba $ \ptr -> do
@@ -52,7 +52,7 @@ initResources vs = do
     vertexAttribArray vPosition $= Enabled
     
     let firstIndex = 0
-        vertexColor = AttribLocation 0
+        vertexColor = AttribLocation 1
     vertexAttribPointer vertexColor $=
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vertexColor $= Enabled

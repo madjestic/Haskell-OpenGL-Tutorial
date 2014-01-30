@@ -13,5 +13,5 @@ main()
 
 	 						 // The color of each vertex will be interpolated
 	 						 // to produce the color of each fragment
-	 						 fragmentColor = vPosition; //vertexColor;
+	 						 fragmentColor = vertexColor;
 }
