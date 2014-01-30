@@ -22,7 +22,7 @@ initResources :: [Vertex2 Float] -> IO Descriptor
 initResources vs = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
-
+    
     let vertices = vs
         numVertices = length vertices
 
@@ -31,6 +31,14 @@ initResources vs = do
     withArray vertices $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head vertices))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
+
+    let rgba = vs
+        numVertices = length rgba
+    colorBuffer <- genObjectName
+    bindBuffer ArrayBuffer $= Just colorBuffer
+    withArray rgba $ \ptr -> do
+        let size = fromIntegral (numVertices * sizeOf (head rgba))
+        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
 
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
@@ -44,10 +52,10 @@ initResources vs = do
     vertexAttribArray vPosition $= Enabled
     
     let firstIndex = 0
-        vertexColot = AttribLocation 1
-    vertexAttribPointer vPosition $=
+        vertexColor = AttribLocation 0
+    vertexAttribPointer vertexColor $=
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
-    vertexAttribArray vPosition $= Enabled
+    vertexAttribArray vertexColor $= Enabled
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
