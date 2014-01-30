@@ -23,9 +23,6 @@ initResources vs = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    colors <- genObjectName
-    bindVertexArrayObject $= Just colors
-
     let vertices = vs
         numVertices = length vertices
 
@@ -34,16 +31,7 @@ initResources vs = do
     withArray vertices $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head vertices))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
-        
-    let rgba = vs
-        numVertices = length rgba
 
-    rgbaBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just rgbaBuffer
-    withArray rgba $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head rgba))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)
-   
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
@@ -51,6 +39,12 @@ initResources vs = do
 
     let firstIndex = 0
         vPosition = AttribLocation 0
+    vertexAttribPointer vPosition $=
+        (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
+    vertexAttribArray vPosition $= Enabled
+    
+    let firstIndex = 0
+        vertexColot = AttribLocation 1
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
@@ -84,7 +78,7 @@ createWindow :: String -> (Int, Int) -> IO Window
 createWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
-    Just win <- GLFW.createWindow sizex sizey "GLFW Demo" Nothing Nothing
+    Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
     GLFW.setKeyCallback win (Just keyPressed)
