@@ -7,6 +7,7 @@ import System.Exit ( exitWith, ExitCode(..) )
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
+import Graphics.UI.GLUT
 import NGL.LoadShaders
 import NGL.Shape
 
@@ -32,16 +33,16 @@ initResources vs = do
         let size = fromIntegral (numVertices * sizeOf (head vertices))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
 
-    let foo = 0.5 :: Float
-    let bar = (-0.0) :: Float
 
-    let rgba = vs --[Vertex2 foo foo,Vertex2 (-0.3::Float) foo,Vertex2 (bar) (bar),Vertex2 foo foo,Vertex2 (bar) (bar),Vertex2 foo (bar)]
+    let rgba = [GL.Color4  (0.0)  1.0   1.0   1.0,
+                GL.Color4 (-1.0) (-1.0) 0.0   0.0,
+                GL.Color4   1.0  (-1.0) 0.0   0.0] :: [Color4 GLfloat]
 
     colorBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just colorBuffer
     withArray rgba $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head rgba))
-        bufferData ArrayBuffer $= (size, ptr, StaticRead)    
+        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
 
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
@@ -57,7 +58,7 @@ initResources vs = do
     let firstIndex = 0
         vertexColor = AttribLocation 1
     vertexAttribPointer vertexColor $=
-        (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
+        (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vertexColor $= Enabled
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
@@ -85,10 +86,11 @@ resizeWindow win w h =
       GL.ortho2D 0 (realToFrac w) (realToFrac h) 0
 
 
-createWindow :: String -> (Int, Int) -> IO Window
+createWindow :: String -> (Int, Int) -> IO GLFW.Window
 createWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
+    initialDisplayMode $= [RGBAMode]
     Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
@@ -97,19 +99,19 @@ createWindow title (sizex,sizey) = do
     return win
 
 
-drawInWindow :: Window -> [[Point]] -> IO ()
+drawInWindow :: GLFW.Window -> [[Point]] -> IO ()
 drawInWindow win vs = do
     descriptor <- initResources $ toVertex2 vs
     onDisplay win descriptor
 
 
-closeWindow :: Window -> IO ()
+closeWindow :: GLFW.Window -> IO ()
 closeWindow win = do
     GLFW.destroyWindow win
     GLFW.terminate
 
 
-onDisplay :: Window -> Descriptor -> IO ()
+onDisplay :: GLFW.Window -> Descriptor -> IO ()
 onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
   GL.clearColor $= Color4 1 0 0 1
   GL.clear [ColorBuffer]
