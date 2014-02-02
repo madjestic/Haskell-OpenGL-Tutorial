@@ -7,7 +7,6 @@ import System.Exit ( exitWith, ExitCode(..) )
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
-import Graphics.UI.GLUT
 import NGL.LoadShaders
 import NGL.Shape
 
@@ -90,7 +89,6 @@ createWindow :: String -> (Int, Int) -> IO GLFW.Window
 createWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
-    initialDisplayMode $= [RGBAMode]
     Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
