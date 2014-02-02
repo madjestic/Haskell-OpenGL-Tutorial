@@ -23,31 +23,15 @@ initResources :: [Vertex2 Float] -> IO Descriptor
 initResources vs = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
-    
+
     let vertices = vs
         numVertices = length vertices
-
-    arrayBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just arrayBuffer
-    withArray vertices $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head vertices))
+   
+    vertexBuffer <- genObjectName
+    bindBuffer ArrayBuffer $= Just vertexBuffer
+    withArray vs $ \ptr -> do
+        let size = fromIntegral (numVertices * sizeOf (head vs))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
-
-
-    let rgba = [GL.Color4  (0.0)  1.0   1.0   1.0,
-                GL.Color4 (-1.0) (-1.0) 0.0   0.0,
-                GL.Color4   1.0  (-1.0) 0.0   0.0] :: [Color4 GLfloat]
-
-    colorBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just colorBuffer
-    withArray rgba $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head rgba))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
-
-    program <- loadShaders [
-        ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
-        ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
-    currentProgram $= Just program
 
     let firstIndex = 0
         vPosition = AttribLocation 0
@@ -55,12 +39,28 @@ initResources vs = do
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
     
+    
+    let rgba = [GL.Color4  (1.0)  0.0   0.0   1.0,
+                GL.Color4  (0.0) (1.0)  0.0   1.0,
+                GL.Color4   0.0  (0.0)  1.0   1.0] :: [Color4 GLfloat]
+
+    colorBuffer <- genObjectName
+    bindBuffer ArrayBuffer $= Just colorBuffer
+    withArray rgba $ \ptr -> do
+        let size = fromIntegral (numVertices * sizeOf (head rgba))
+        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
+    
     let firstIndex = 0
         vertexColor = AttribLocation 1
     vertexAttribPointer vertexColor $=
         (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vertexColor $= Enabled
 
+    program <- loadShaders [
+        ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
+        ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
+    currentProgram $= Just program
+    
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
 
 
@@ -101,7 +101,7 @@ createWindow title (sizex,sizey) = do
 
 drawInWindow :: GLFW.Window -> [[Point]] -> IO ()
 drawInWindow win vs = do
-    descriptor <- initResources $ toVertex2 vs
+    descriptor <- initResources $ toVertex vs
     onDisplay win descriptor
 
 
@@ -122,4 +122,3 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
   forever $ do
      GLFW.pollEvents
      onDisplay win descriptor
-

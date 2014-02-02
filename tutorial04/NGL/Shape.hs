@@ -44,8 +44,8 @@ type Radius    = Float
 type Side      = Float
 type Divisions = Int
 
-toVertex2 :: [[Point]] -> Picture
-toVertex2 xs = map vertex $ concat xs
+toVertex :: [[Point]] -> Picture
+toVertex xs = map vertex $ concat xs
 
 vertex :: Point -> Vertex2 Float
 vertex p = (\(k,l) -> Vertex2 k l) p
