@@ -18,7 +18,9 @@
 
 module NGL.Shape where
 
-import Graphics.Rendering.OpenGL (Vertex4(..))
+import Graphics.Rendering.OpenGL (Vertex4(..),
+                                  Color4(..),
+                                  GLclampf(..))
 import NGL.Utils
 
 data Shape = Circle    Point   Radius Divisions
@@ -33,12 +35,27 @@ data Shape = Circle    Point   Radius Divisions
            deriving Show
 
 
-data Color = Red
-           | Green
-           | Blue
-           | RGB    Float Float Float
-           | RGBA   Float Float Float Float
-           deriving Show
+data Colors = Red
+            | Green
+            | Blue
+            | White
+            | Black
+            | RGB    GLclampf GLclampf GLclampf 
+            | RGBA   GLclampf GLclampf GLclampf GLclampf
+            | Default
+            deriving Show
+
+instance Eq Colors where
+    Red          == Red   = True
+    Green        == Green = True
+    Blue         == Blue  = True
+    White        == White = True
+    Black        == Black = True
+    RGB _ _ _    == RGB _ _ _    = True
+    RGBA _ _ _ _ == RGBA _ _ _ _ = True
+    Default      == Default      = True
+    _ == _ = False
+
 
 data Transform = Rotate2D Float Point 
                | Translate2D Point Point
@@ -46,6 +63,7 @@ data Transform = Rotate2D Float Point
 
 
 type Picture   =[Vertex4 Float]
+type Points    =[Point]
 type Point     =(Float, Float)
 type Radius    = Float
 type Side      = Float
@@ -121,5 +139,12 @@ line (x1,y1) (x2,y2) w = map (addVectors (x1,y1)) $ rotate2D' theta $ rect (0.0,
            theta = signum y * acos x                               -- | angle in radians
            len   = sqrt((x2-x1)^2+ (y2-y1)^2)
 
-
--- withColor :: Color -> Shape -> ([])
+getColor :: Colors -> Color4 GLclampf
+getColor (RGB r g b)    = Color4 r g b 1
+getColor (RGBA r g b a) = Color4 r g b a
+getColor x 
+    | x == Red   = Color4 1 0 0 1 
+    | x == Green = Color4 0 1 0 1
+    | x == Blue  = Color4 0 0 1 1
+    | x == White = Color4 1 1 1 1
+    | otherwise  = Color4 0 0 0 1

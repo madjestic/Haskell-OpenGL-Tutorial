@@ -1,3 +1,7 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+
 module NGL.Rendering where
 
 import Graphics.Rendering.OpenGL as GL
@@ -10,6 +14,18 @@ import Foreign.Storable
 import NGL.LoadShaders
 import NGL.Shape
 
+class Draw a  where
+    drawIn :: a
+      
+instance (a ~ Colors, b ~ GLFW.Window, c ~ [[Point]], d ~ IO ()) => Draw (a -> b -> c -> d) where
+    drawIn clr win vs = do
+        descriptor <- initResources $ toVertex vs
+        onDisplay clr win descriptor
+
+instance (b ~ GLFW.Window, c ~ [[Point]], d ~ IO ()) => Draw (b -> c -> d) where
+    drawIn win vs = do
+        descriptor <- initResources $ toVertex vs
+        onDisplay Default win descriptor
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
@@ -37,7 +53,6 @@ initResources vs = do
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
-    
     
     let rgba = [GL.Color4  (1.0)  0.0   0.0   1.0,
                 GL.Color4  (0.0) (1.0)  0.0   1.0,
@@ -97,21 +112,15 @@ createWindow title (sizex,sizey) = do
     return win
 
 
-drawIn :: GLFW.Window -> [[Point]] -> IO ()
-drawIn win vs = do
-    descriptor <- initResources $ toVertex vs
-    onDisplay win descriptor
-
-
 closeWindow :: GLFW.Window -> IO ()
 closeWindow win = do
     GLFW.destroyWindow win
     GLFW.terminate
 
 
-onDisplay :: GLFW.Window -> Descriptor -> IO ()
-onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
-  GL.clearColor $= Color4 1 0 0 1
+onDisplay :: Colors -> GLFW.Window -> Descriptor -> IO ()
+onDisplay clr win descriptor@(Descriptor triangles firstIndex numVertices) = do
+  GL.clearColor $= getColor clr
   GL.clear [ColorBuffer]
   bindVertexArrayObject $= Just triangles
   drawArrays Triangles firstIndex numVertices
@@ -119,4 +128,4 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
 
   forever $ do
      GLFW.pollEvents
-     onDisplay win descriptor
+     onDisplay clr win descriptor
