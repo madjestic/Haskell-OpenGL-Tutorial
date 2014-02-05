@@ -25,8 +25,8 @@ data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 class DrawIn a where
     drawIn :: a -> IO ()
 
-instance (a ~ N.Color, b ~ GLFW.Window, c ~ Drawable) => DrawIn (a b, c) where
-    drawIn (a b, c) = draw a b c
+instance (a ~ N.Color, b ~ GLFW.Window, c ~ Drawable) => DrawIn (a, b, c) where
+    drawIn (a, b, c) = draw a b c
 instance (a ~ Window, b ~ Drawable) => DrawIn (a, b) where
     drawIn (win, ds) = draw Default win ds
 
