@@ -1,6 +1,5 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module NGL.Rendering where
 
@@ -18,8 +17,19 @@ import NGL.Shape as N
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
-drawIn :: N.Color -> Window -> Drawable -> IO ()
-drawIn clr win xs = do
+class DrawIn a where
+    drawIn :: N.Color -> Window -> a -> IO ()
+instance DrawIn Drawable where
+    drawIn = draw
+instance DrawIn [Drawable] where
+    drawIn :: N.Color -> Window -> [Drawable] -> IO ()
+    drawIn wc win ds = draw wc win (fromDrawables ds)
+            where
+               fromDrawables ds = (concat $ map fst ds, concat $ map snd ds)
+
+
+draw :: N.Color -> Window -> Drawable -> IO ()
+draw clr win xs = do
     descriptor <- initResources xs
     onDisplay clr win descriptor
 

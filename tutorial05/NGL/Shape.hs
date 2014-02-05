@@ -14,7 +14,9 @@
 -- | Shapes  positioned by center
 -- | Shapes' positioned by bottom-left corner--
 --------------------------------------------------------------------------------
-
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 
 module NGL.Shape where
 
@@ -71,11 +73,13 @@ type Side      = Float
 type Divisions = Int
 type Drawable  = ([Color4 Float],[Vertex4 Float])
 
+
 toDrawable :: Color -> Shape -> Drawable
 toDrawable clr x = (cs,vs)
     where
-           vs = map vertex $ shape x
-           cs = map (\x -> Color4 0 1 0 1) $ vs
+           vs    = map vertex $ shape x
+           color = getColor clr
+           cs    = map (\x -> color) $ vs
 
 toVertex :: [Point] -> Picture
 toVertex xs = map vertex xs
@@ -147,9 +151,9 @@ line (x1,y1) (x2,y2) w = map (addVectors (x1,y1)) $ rotate2D' theta $ rect (0.0,
            theta = signum y * acos x                               -- | angle in radians
            len   = sqrt((x2-x1)^2+ (y2-y1)^2)
 
-getColor :: Color -> Color4 GLclampf
-getColor (RGB r g b)    = Color4 r g b 1
-getColor (RGBA r g b a) = Color4 r g b a
+getColor :: (Real a) => Color -> Color4 a
+--getColor (RGB r g b)    = Color4 r g b 1
+--getColor (RGBA r g b a) = Color4 r g b a
 getColor x 
     | x == Red   = Color4 1 0 0 1 
     | x == Green = Color4 0 1 0 1

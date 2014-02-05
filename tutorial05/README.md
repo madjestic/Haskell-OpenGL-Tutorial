@@ -1,5 +1,3 @@
-In this tutorial we explore the possibility of using typeclasses in order
-to create polyvariadic heterogenously typed functions as a syntactic sugar
-for NGL calls.
+In this tutorial we sugarise the interface to NGL with polymorphic functions.
 
-In short:  We are creating syntactic sugar here.
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial05/tutorial05.png)
