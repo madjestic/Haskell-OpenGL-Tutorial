@@ -8,14 +8,14 @@ main = do
      let drawables = [toDrawable Red     $ Square (-0.5, -0.5) 1.0,
                       toDrawable Green   $ Circle (0.5, 0.5) 0.5 100,
                       toDrawable Blue    $ Rect (-1.0,0.33) (0.0,0.66),
-                      toDrawable Default $ Polyline [ (0.0,-0.66)
-                                                     ,(0.33,-0.33)
-                                                     ,(0.66,-0.66)
-                                                     ,(1.0,-0.33)] 
-                                                     0.01 
+                      toDrawable White   $ Polyline [ (0.0,-0.66)
+                                                             ,(0.33,-0.33)
+                                                             ,(0.66,-0.66)
+                                                             ,(1.0,-0.33)] 
+                                                             0.01 
                      ]
 
      window <- createWindow "NGL is Not GLoss" (512,512)
-     drawIn White window drawables
+     drawIn Default window drawables
      closeWindow window
 
