@@ -12,30 +12,35 @@ import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
 import NGL.LoadShaders
-import NGL.Shape
+import NGL.Shape as N
 
-class Draw a  where
-    drawIn :: a
-      
-instance (a ~ Colors, b ~ GLFW.Window, c ~ [[Point]], d ~ IO ()) => Draw (a -> b -> c -> d) where
-    drawIn clr win vs = do
-        descriptor <- initResources $ toVertex vs
-        onDisplay clr win descriptor
 
-instance (b ~ GLFW.Window, c ~ [[Point]], d ~ IO ()) => Draw (b -> c -> d) where
-    drawIn win vs = do
-        descriptor <- initResources $ toVertex vs
-        onDisplay Default win descriptor
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
+-- | A polyvariadic type-class (multivariable interface),
+-- | Allows calling:
+-- | drawIn window ...
+-- | drawIn White window ...
+class DrawIn a where
+    drawIn :: a -> IO ()
+
+instance (a ~ N.Color, b ~ GLFW.Window, c ~ Drawable) => DrawIn (a b, c) where
+    drawIn (a b, c) = draw a b c
+instance (a ~ Window, b ~ Drawable) => DrawIn (a, b) where
+    drawIn (win, ds) = draw Default win ds
+
+draw :: N.Color -> Window -> Drawable -> IO ()
+draw clr win xs = do
+    descriptor <- initResources xs
+    onDisplay clr win descriptor
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
 
 
-initResources :: [Vertex4 Float] -> IO Descriptor
-initResources vs = do
+initResources :: ([Color4 Float],[Vertex4 Float]) -> IO Descriptor
+initResources (cs, vs) = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
@@ -54,10 +59,8 @@ initResources vs = do
         (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
     
-    let rgba = [GL.Color4  (1.0)  0.0   0.0   1.0,
-                GL.Color4  (0.0) (1.0)  0.0   1.0,
-                GL.Color4   0.0  (0.0)  1.0   1.0] :: [Color4 GLfloat]
-
+    let rgba = cs
+    
     colorBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just colorBuffer
     withArray rgba $ \ptr -> do
@@ -118,7 +121,7 @@ closeWindow win = do
     GLFW.terminate
 
 
-onDisplay :: Colors -> GLFW.Window -> Descriptor -> IO ()
+onDisplay :: N.Color -> GLFW.Window -> Descriptor -> IO ()
 onDisplay clr win descriptor@(Descriptor triangles firstIndex numVertices) = do
   GL.clearColor $= getColor clr
   GL.clear [ColorBuffer]

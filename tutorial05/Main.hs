@@ -5,9 +5,9 @@ import NGL.Rendering
 
 main :: IO ()
 main = do
-     let shapes = [  shape $ Triangle (0.0,1.0) (-1.0,-1.0) (1.0,-1.0)        
-                  ]
+     let drawable = toDrawable Green $ Triangle (0.0,1.0) (-1.0,-1.0) (1.0,-1.0)
      window <- createWindow "My First Window" (512,512)
-     drawIn window shapes
+     drawIn (White window, drawable)
+     --drawIn "foobar"
      closeWindow window
  

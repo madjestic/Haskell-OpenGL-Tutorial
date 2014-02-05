@@ -23,6 +23,7 @@ import Graphics.Rendering.OpenGL (Vertex4(..),
                                   GLclampf(..))
 import NGL.Utils
 
+
 data Shape = Circle    Point   Radius Divisions
            | Square    Point   Side
            | Rect      Point   Point
@@ -35,7 +36,7 @@ data Shape = Circle    Point   Radius Divisions
            deriving Show
 
 
-data Colors = Red
+data Color = Red
             | Green
             | Blue
             | White
@@ -45,7 +46,7 @@ data Colors = Red
             | Default
             deriving Show
 
-instance Eq Colors where
+instance Eq Color where
     Red          == Red   = True
     Green        == Green = True
     Blue         == Blue  = True
@@ -68,9 +69,16 @@ type Point     =(Float, Float)
 type Radius    = Float
 type Side      = Float
 type Divisions = Int
+type Drawable  = ([Color4 Float],[Vertex4 Float])
 
-toVertex :: [[Point]] -> Picture
-toVertex xs = map vertex $ concat xs
+toDrawable :: Color -> Shape -> Drawable
+toDrawable clr x = (cs,vs)
+    where
+           vs = map vertex $ shape x
+           cs = map (\x -> Color4 0 1 0 1) $ vs
+
+toVertex :: [Point] -> Picture
+toVertex xs = map vertex xs
 
 vertex :: Point -> Vertex4 Float
 vertex p = (\(k,l) -> Vertex4 k l 0 1) p
@@ -139,7 +147,7 @@ line (x1,y1) (x2,y2) w = map (addVectors (x1,y1)) $ rotate2D' theta $ rect (0.0,
            theta = signum y * acos x                               -- | angle in radians
            len   = sqrt((x2-x1)^2+ (y2-y1)^2)
 
-getColor :: Colors -> Color4 GLclampf
+getColor :: Color -> Color4 GLclampf
 getColor (RGB r g b)    = Color4 r g b 1
 getColor (RGBA r g b a) = Color4 r g b a
 getColor x 
