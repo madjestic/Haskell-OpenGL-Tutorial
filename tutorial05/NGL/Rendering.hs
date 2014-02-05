@@ -18,20 +18,8 @@ import NGL.Shape as N
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
--- | A polyvariadic type-class (multivariable interface),
--- | Allows calling:
--- | drawIn window ...
--- | drawIn White window ...
-class DrawIn a where
-    drawIn :: a -> IO ()
-
-instance (a ~ N.Color, b ~ GLFW.Window, c ~ Drawable) => DrawIn (a, b, c) where
-    drawIn (a, b, c) = draw a b c
-instance (a ~ Window, b ~ Drawable) => DrawIn (a, b) where
-    drawIn (win, ds) = draw Default win ds
-
-draw :: N.Color -> Window -> Drawable -> IO ()
-draw clr win xs = do
+drawIn :: N.Color -> Window -> Drawable -> IO ()
+drawIn clr win xs = do
     descriptor <- initResources xs
     onDisplay clr win descriptor
 
