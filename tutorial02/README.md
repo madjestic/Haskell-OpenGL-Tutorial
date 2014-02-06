@@ -4,4 +4,4 @@ Extended with basic callbacks and frawing functions.
 2) Resize call back to redraw the opengl context when the application window is resized.
 3) Draws 2 triangles with red background
 
-![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial03/NGL.png)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial02/tutorial02.png)
