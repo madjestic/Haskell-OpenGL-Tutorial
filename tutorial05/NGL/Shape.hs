@@ -14,9 +14,6 @@
 -- | Shapes  positioned by center
 -- | Shapes' positioned by bottom-left corner--
 --------------------------------------------------------------------------------
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
 
 module NGL.Shape where
 
