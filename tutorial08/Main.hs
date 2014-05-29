@@ -32,7 +32,7 @@ foo :: IO Int
 foo = return (1::Int)
 
 
-withEventsIn :: Window -> [Drawable] -> IO ()
+-- withEventsIn :: Window -> [Drawable] -> IO ()
 withEventsIn window ds = do
      h <- windowHandler window
      network <- compile $ do
@@ -46,6 +46,7 @@ withEventsIn window ds = do
          let i = 1::Int
          let ecount = accumE 0 ((+i) <$ filterE (match Key'Up) keyE)
          reactimate $ fmap print ecount
+         return i
 --     return ecount
      actuate network -- >> return (1::Int) >>= \x -> print x -- | Maybe that's how I can pass a stateful object to the drawLoop?
      drawIn Default window ds
