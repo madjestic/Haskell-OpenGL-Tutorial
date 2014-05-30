@@ -21,8 +21,8 @@ main = do
                      ]
 
      window <- createWindow "NGL is Not GLoss" (512,512)     
+     drawIn Default window drawables
      withEventsIn window drawables
---     drawIn Default window drawables
      closeWindow window
 
 
@@ -47,8 +47,8 @@ withEventsIn window ds = do
          let i = 1::Int
          let ecount = accumE 0 ((+i) <$ filterE (match Key'Up) keyE)
          reactimate $ fmap print ecount 
-         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 0.5 100] ) <$ filterE (match Key'H) keyE
-         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 1.0 50] ) <$ filterE (match Key'N) keyE
+         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 1.0 100] ) <$ filterE (match Key'Up) keyE
+         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 0.5 10] ) <$ filterE (match Key'Down) keyE
 
 
      actuate network -- >> return (1::Int) >>= \x -> print x -- | Maybe that's how I can pass a stateful object to the drawLoop?
