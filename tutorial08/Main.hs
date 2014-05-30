@@ -6,7 +6,8 @@ import NGL.Shape
 import NGL.Rendering
 
 import Control.Applicative
-import Graphics.UI.GLFW (Window)
+import Control.Monad
+import Graphics.UI.GLFW (pollEvents, Window)
 import Reactive.Banana as R
 import Reactive.Banana.Frameworks
 import Reactive.Banana.GLFW
@@ -32,26 +33,37 @@ foo :: IO Int
 foo = return (1::Int)
 
 
--- withEventsIn :: Window -> [Drawable] -> IO ()
+withEventsIn :: Window -> [Drawable] -> IO ()
 withEventsIn window ds = do
-     h <- windowHandler window
+     handle <- windowHandler window             
      network <- compile $ do
-         keyE <- keyEvent h
+         keyE <- keyEvent handle
          reactimate $ exit window <$ filterE (match Key'Escape) keyE
-         reactimate $ sayHello <$ filterE (match Key'H) keyE
+--         reactimate $ (drawFoo window ds) <$ filterE (match Key'H) keyE
          reactimate $ print <$> keyE
-         c <- cursor h TopLeft
+         c <- cursor handle TopLeft
+--         drawFoo window ds
          reactimate $ putStrLn . ("Cursor: " ++) . show <$> cursorMove c
-    
          let i = 1::Int
          let ecount = accumE 0 ((+i) <$ filterE (match Key'Up) keyE)
-         reactimate $ fmap print ecount
-         return i
---     return ecount
-     actuate network -- >> return (1::Int) >>= \x -> print x -- | Maybe that's how I can pass a stateful object to the drawLoop?
-     drawIn Default window ds
---     return ecount
+         reactimate $ fmap print ecount 
+         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 0.5 100] ) <$ filterE (match Key'H) keyE
+         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 1.0 50] ) <$ filterE (match Key'N) keyE
 
+
+     actuate network -- >> return (1::Int) >>= \x -> print x -- | Maybe that's how I can pass a stateful object to the drawLoop?
+     --drawIn Default window ds
+     forever pollEvents
+
+fromEvent :: Event t Int -> Int
+fromEvent = undefined
+
+drawFoo :: Window -> [Drawable] -> IO ()
+drawFoo window ds = drawIn Default window ds
+
+-- drawParm :: Window -> [Drawable] -> Int -> IO ()
+-- drawParm window ds iter = undefined
 
 sayHello :: IO ()
 sayHello = print "hello!"
+
