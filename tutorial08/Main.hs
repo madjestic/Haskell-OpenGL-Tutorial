@@ -11,15 +11,13 @@ import Graphics.UI.GLFW (pollEvents, Window)
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 import Reactive.Banana.GLFW
--- import qualified Reactive.Banana.Internal.Combinators as Prim
--- import Data.Reactive
 
 
 main :: IO ()
 main = do
      let drawables = [
                  -- | toDrawable Color $ Shape  Position Radius Divisions
-                      toDrawable White $ Circle (0.0, 0.0) 0.5 100       
+                      toDrawable White $ Circle (0.0, 0.0) 0.5 3       
                      ]
 
      window <- createWindow "NGL is Not GLoss" (512,512)     
@@ -37,12 +35,8 @@ withEventsIn window ds = do
          reactimate $ print <$> keyE
          c <- cursor handle TopLeft
          reactimate $ putStrLn . ("Cursor: " ++) . show <$> cursorMove c
-         let i = 1::Int
-         let ecount = accumE 0 ((+i) <$ filterE (match Key'Up) keyE)
-         reactimate $ fmap print ecount 
+         let ecount = accumE 0 $ ((+1) <$ filterE (match Key'Up) keyE) `union` ((subtract 1) <$ filterE (match Key'Down) keyE)
          reactimate $ fmap (\x->   ( drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 1.0 (x+3)] )   ) ecount
-         reactimate $ (drawFoo window [ toDrawable White $ Circle (0.0, 0.0) 0.5 10] ) <$ filterE (match Key'Down) keyE
-
 
      actuate network
      forever pollEvents
