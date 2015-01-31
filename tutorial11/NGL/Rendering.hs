@@ -113,7 +113,7 @@ initResources (cs, vs, uvs, tex) = do
     --
     -- Declaring VBO: UVs
     --
-    let uvs = squareUV
+    -- let uvs = squareUV
 
     textureBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just textureBuffer
