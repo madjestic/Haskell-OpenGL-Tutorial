@@ -1,4 +1,3 @@
--- {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 --------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ data Shape = Circle    Point   Radius Divisions
            
 type Picture = (Shape, Texture)
 
-data Color = Red
+data Property = Red
             | Green
             | Blue
             | White
@@ -52,7 +51,7 @@ data Color = Red
             | Default
             deriving Show
 
-instance Eq Color where
+instance Eq Property where
     Red          == Red   = True
     Green        == Green = True
     Blue         == Blue  = True
@@ -77,41 +76,17 @@ type Side        = Float
 type Divisions   = Int
 type Texture     = String
 
--- toMinimal :: Color -> Shape -> Shape
--- toMinimal clr x = (cs,vs)
---     where
---            vs    = map toVertex4 $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
-
--- toPicture :: Color -> Shape -> Picture -- it's more like a UV projection
--- toPicture clr x = (cs,vs,uvs)
---     where
---            vs    = map toVertex4 $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
---            uvs   = toUVs ps
---                where ps = [(1.0, 1.0),(0.0, 1.0),(0.0, 0.0)
---                           ,(1.0, 1.0),(0.0, 0.0),(1.0, 0.0)]::Points
-
--- toDrawable :: Color -> Shape -> Primitive
--- toDrawable clr x = (cs,vs)
---     where
---            vs    = map vertex $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
-
 type Drawable = ([Color4 Float],[Vertex4 Float],[TexCoord2 Float],String)
 
 class Primitive a where 
-      toDrawable :: Color -> a -> Drawable
+      toDrawable :: Property -> a -> Drawable
       toPoints   :: a -> Points
 instance Primitive Shape where
-         toDrawable :: Color ->  Shape -> Drawable
-         toDrawable clr x = (cs, vs, uv, tex)
+         toDrawable :: Property ->  Shape -> Drawable
+         toDrawable prop x = (cs, vs, uv, tex)
                     where
                       vs'   = toPoints x
-                      color = getColor clr
+                      color = getProperty prop
                       cs    = map (\_ -> color) vs'
                       uv    = map toTextureCoord2 vs'
                       vs    = map toVertex4 $ vs'
@@ -126,18 +101,18 @@ instance Primitive Shape where
          toPoints (Triangle p1  p2 p3)    =  triangle p1 p2 p3
 
 instance Primitive Picture where
-         toDrawable :: Color ->  Picture -> Drawable
-         toDrawable clr x = (cs, vs, uv, tex)
+         toDrawable :: Property ->  Picture -> Drawable
+         toDrawable prop x = (cs, vs, uv, tex)
                     where
-                      vs'   = toPicture x
-                      color = getColor clr
+                      vs'   = toPoints x
+                      color = getProperty prop
                       cs    = map (\_ -> color) vs'
                       uv    = map toTextureCoord2 vs'
                       vs    = map toVertex4 $ vs'
                       tex   = "test.png"
                       
          toPoints :: Picture -> [Point]
-         toPoints = undefined
+         toPoints (s,_) = toPoints s
 
 toVertexArray :: [Point] -> VertexArray
 toVertexArray xs = map toVertex4 xs
@@ -156,9 +131,6 @@ toTextureCoord2 = (\(k,l) -> TexCoord2 k l)
 
 rotate :: Float -> [(Float, Float)] -> [(Float, Float)]
 rotate theta = rotate2D' (toRadians theta)
-
-toPicture :: Picture -> [Point]
-toPicture = undefined
 
 data Projection = Planar                
                 deriving Show
@@ -224,12 +196,12 @@ line (x1,y1) (x2,y2) w = map (addVectors (x1,y1)) $ rotate2D' theta $ rect (0.0,
            theta = signum y * acos x                               -- | angle in radians
            len   = sqrt((x2-x1)^2+ (y2-y1)^2)
 
-getColor :: (Real a) => Color -> Color4 a
-getColor clr 
-    | clr == Red   = Color4 1 0 0 1 
-    | clr == Green = Color4 0 1 0 1
-    | clr == Blue  = Color4 0 0 1 1
-    | clr == White = Color4 1 1 1 1
+getProperty :: (Real a) => Property -> Color4 a
+getProperty prop 
+    | prop == Red   = Color4 1 0 0 1 
+    | prop == Green = Color4 0 1 0 1
+    | prop == Blue  = Color4 0 0 1 1
+    | prop == White = Color4 1 1 1 1
     | otherwise  = Color4 0 0 0 1
 
 
@@ -244,7 +216,6 @@ bbox k = (bl, tr)
        where 
            bl = (\[x,y] -> (x,y)) $ map head $ map qsort $ (\(xs,ys) -> [xs,ys]) $ unzip k
            tr = (\[x,y] -> (x,y)) $ map head $ map reverse $ map qsort $ (\(xs,ys) -> [xs,ys]) $ unzip k
--- bbox is sort x, sort y, zip pairs: [(x0,y0),(x1,y1),(x2,y2)...]->([x0,x1,x2,...][y0,y1,y2,...])
 
 
 qsort :: Ord a => [a] -> [a]
