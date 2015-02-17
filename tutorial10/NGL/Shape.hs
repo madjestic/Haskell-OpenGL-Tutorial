@@ -90,7 +90,7 @@ type Texture     = String
 --            vs    = map toVertex4 $ toPoints x
 --            color = getColor clr
 --            cs    = map (\x -> color) $ vs
---            uvs   = toUVs ps
+--            uvs   = toTextureCoord2 ps
 --                where ps = [(1.0, 1.0),(0.0, 1.0),(0.0, 0.0)
 --                           ,(1.0, 1.0),(0.0, 0.0),(1.0, 0.0)]::Points
 
@@ -113,7 +113,7 @@ instance Primitive Shape where
                       vs'   = toPoints x
                       color = getColor clr
                       cs    = map (\_ -> color) vs'
-                      uv    = map toTextureCoord2 vs'
+                      uv    = map toTexCoord2 vs'
                       vs    = map toVertex4 $ vs'
                       tex   = "test.png"
                       
@@ -132,7 +132,7 @@ instance Primitive Picture where
                       vs'   = toPicture x
                       color = getColor clr
                       cs    = map (\_ -> color) vs'
-                      uv    = map toTextureCoord2 vs'
+                      uv    = map toTexCoord2 vs'
                       vs    = map toVertex4 $ vs'
                       tex   = "test.png"
                       
@@ -145,14 +145,14 @@ toVertexArray xs = map toVertex4 xs
 toVertex4 :: Point -> Vertex4 Float
 toVertex4 p = (\(k,l) -> Vertex4 k l 0 1) p
 
-toUVs :: [Point] -> UV
-toUVs xs = map toTextureCoord2 xs
+toTextureCoord2 :: [Point] -> UV
+toTextureCoord2 xs = map (\(k,l) -> TexCoord2 k l) xs
+
+toTexCoord2 :: (a, a) -> TexCoord2 a
+toTexCoord2 p = (\(k,l) -> TexCoord2 k l) p
 
 toTextureCoord4 :: Point -> TexCoord4 Float
 toTextureCoord4 p = (\(k,l) -> TexCoord4 k l 0 0) p
-
-toTextureCoord2 :: Point -> TexCoord2 Float
-toTextureCoord2 = (\(k,l) -> TexCoord2 k l)
 
 rotate :: Float -> [(Float, Float)] -> [(Float, Float)]
 rotate theta = rotate2D' (toRadians theta)
@@ -164,7 +164,9 @@ data Projection = Planar
                 deriving Show
 
 toUV :: Projection -> UV
-toUV = undefined
+toUV Planar = toTextureCoord2 ps
+                  where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
+                             ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
 
 
 polyline :: [Point] -> Float -> [Point]
@@ -187,11 +189,6 @@ square pos side = [p1, p2, p3,
         p3 = (x - r, y - r)
         p4 = (x + r, y - r)
         
-squareUV :: UV
-squareUV = toUVs ps
-           where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
-                      ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
-
 -- | abbcca := [a,b,c] -> [a,b,b,c]
 abbcca :: [a] -> [a]
 abbcca (x:xs) = [x] ++ (concat $ map (\(x,y) -> [x,y]) $ map (\x -> (x, x)) (init xs)) ++ [last xs]

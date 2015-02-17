@@ -18,48 +18,16 @@ import Graphics.GLUtil
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
--- class Drawable a where 
---       toDrawable :: a -> ([Color4 Float],[Vertex4 Float])
--- instance Drawable Shape where
---          toDrawable :: Shape -> ([Color4 Float],[Vertex4 Float])
---          toDrawable = undefined
--- instance Drawable Picture where
---          toDrawable :: Picture -> ([Color4 Float],[Vertex4 Float])
---          toDrawable = undefined
-
 class Draw a where
       drawIn :: Color -> Window -> a -> IO ()
 instance Draw Drawable where
     drawIn = draw 
                                
--- instance Draw [Shape] where
---     drawIn :: Color -> Window -> [Shape] -> IO ()
---     drawIn wc win ds = draw wc win (fromDrawables ds)
---             where
---                fromDrawables ds = (concat $ map fst ds, concat $ map snd ds)
-
--- class Render a where
---       render :: Window -> Shape -> a -> IO ()
--- instance Render (Constant Color) where
---          render = render1
-
 draw :: Color -> Window -> Drawable -> IO ()
 draw clr win xs = do
     descriptor <- initResources xs
     onDisplay clr win descriptor
     
--- render :: Window -> Shape -> Material -> IO ()
--- render win s (Constant clr) = do
---        descriptor <- initResources s
---        onDisplay clr win descriptor
-
--- data Material = Constant Color
---               | Textured
---               deriving Show
-              
--- instance Eq Material where
---          (Constant )
-
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
 
@@ -113,7 +81,7 @@ initResources (cs, vs, uvs, tex) = do
     --
     -- Declaring VBO: UVs
     --
-    let uvs = squareUV
+    let uvs = toUV Planar
 
     textureBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just textureBuffer
