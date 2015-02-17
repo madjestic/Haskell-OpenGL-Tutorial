@@ -42,14 +42,14 @@ data Shape = Circle    Point   Radius Divisions
 type Picture = (Shape, Texture)
 
 data Property = Red
-            | Green
-            | Blue
-            | White
-            | Black
-            | RGB    GLclampf GLclampf GLclampf 
-            | RGBA   GLclampf GLclampf GLclampf GLclampf
-            | Default
-            deriving Show
+                | Green
+                | Blue
+                | White
+                | Black
+                | RGB    GLclampf GLclampf GLclampf 
+                | RGBA   GLclampf GLclampf GLclampf GLclampf
+                | Default
+                deriving Show
 
 instance Eq Property where
     Red          == Red   = True
@@ -75,7 +75,6 @@ type Radius      = Float
 type Side        = Float
 type Divisions   = Int
 type Texture     = String
-
 type Drawable = ([Color4 Float],[Vertex4 Float],[TexCoord2 Float],String)
 
 class Primitive a where 
