@@ -8,6 +8,6 @@ class Primitive a where
       toDrawable :: Property -> a -> Drawable
       toPoints   :: a -> Points
 
-where a can be both type Shape and type Picture.
+where the variable 'a' can be both type 'Shape' and type 'Picture'.
 
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial11/main.png)
