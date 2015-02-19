@@ -5,11 +5,11 @@ import NGL.Rendering
 
 draw' :: Drawable -> IO ()
 draw' drawable = do
-     window <- createWindow "NGL is Not GLoss" (512,512)
-     drawIn Default window drawable
-     closeWindow window
+     inWindow <- createWindow "NGL is Not GLoss" (512,512)
+     draw inWindow drawable
+     closeWindow inWindow
 
 main :: IO ()
 main = do
-     let drawable = toDrawable Red $ Square (-0.0, -0.0) 1.0
+     let drawable = toDrawable $ Square (-0.0, -0.0) 1.0
      draw' drawable

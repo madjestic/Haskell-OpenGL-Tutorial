@@ -18,19 +18,13 @@ import Graphics.GLUtil
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
-class Draw a where
-      drawIn :: Color -> Window -> a -> IO ()
-instance Draw Drawable where
-    drawIn = draw 
-                               
-draw :: Color -> Window -> Drawable -> IO ()
-draw clr win xs = do
+draw :: Window -> Drawable -> IO ()
+draw win xs = do
     descriptor <- initResources xs
-    onDisplay clr win descriptor
+    onDisplay win descriptor
     
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
-
 
 loadTex :: FilePath -> IO TextureObject
 loadTex f = do t <- either error id <$> readTexture f
@@ -38,8 +32,8 @@ loadTex f = do t <- either error id <$> readTexture f
                texture2DWrap $= (Repeated, ClampToEdge)
                return t
 
-initResources :: ([Color4 Float],[Vertex4 Float],[TexCoord2 Float],String) -> IO Descriptor
-initResources (cs, vs, uvs, tex) = do
+initResources :: ([Vertex4 Float],[TexCoord2 Float],String) -> IO Descriptor
+initResources (vs, uvs, tex) = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
     
@@ -60,23 +54,6 @@ initResources (cs, vs, uvs, tex) = do
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
-
-    --
-    -- Declaring VBO: colors
-    --
-    let rgba = cs
-    
-    colorBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just colorBuffer
-    withArray rgba $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head rgba))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)    
-    
-    let firstIndex = 0
-        vertexColor = AttribLocation 1
-    vertexAttribPointer vertexColor $=
-        (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
-    vertexAttribArray vertexColor $= Enabled
 
     --
     -- Declaring VBO: UVs
@@ -101,8 +78,8 @@ initResources (cs, vs, uvs, tex) = do
     textureBinding Texture2D $= Just tx    
 
     program <- loadShaders [
-        ShaderInfo VertexShader (FileSource "Shaders/triangles.vert"),
-        ShaderInfo FragmentShader (FileSource "Shaders/triangles.frac")]
+        ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
+        ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
     
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)
@@ -148,9 +125,9 @@ closeWindow win = do
     GLFW.terminate
 
 
-onDisplay :: Color -> GLFW.Window -> Descriptor -> IO ()
-onDisplay clr win descriptor@(Descriptor triangles firstIndex numVertices) = do
-  GL.clearColor $= getColor clr
+onDisplay :: GLFW.Window -> Descriptor -> IO ()
+onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
+  GL.clearColor $= Color4 0 0 0 1
   GL.clear [ColorBuffer]
   bindVertexArrayObject $= Just triangles
   drawArrays Triangles firstIndex numVertices
@@ -158,4 +135,4 @@ onDisplay clr win descriptor@(Descriptor triangles firstIndex numVertices) = do
 
   forever $ do
      GLFW.pollEvents
-     onDisplay clr win descriptor
+     onDisplay win descriptor
