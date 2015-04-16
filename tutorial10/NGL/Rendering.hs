@@ -18,7 +18,7 @@ import Graphics.GLUtil
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
-draw :: Window -> Drawable -> IO ()
+draw :: GLFW.Window -> Drawable -> IO ()
 draw win xs = do
     descriptor <- initResources xs
     onDisplay win descriptor
@@ -33,7 +33,7 @@ loadTex f = do t <- either error id <$> readTexture f
                return t
 
 initResources :: ([Vertex4 Float],[TexCoord2 Float],String) -> IO Descriptor
-initResources (vs, uvs, tex) = do
+initResources (vs, uv, tex) = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
     
@@ -58,12 +58,12 @@ initResources (vs, uvs, tex) = do
     --
     -- Declaring VBO: UVs
     --
-    let uvs = toUV Planar
+    let uv = toUV Planar
 
     textureBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just textureBuffer
-    withArray uvs $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head uvs))
+    withArray uv $ \ptr -> do
+        let size = fromIntegral (numVertices * sizeOf (head uv))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
     let firstIndex = 0
         uvCoords = AttribLocation 2

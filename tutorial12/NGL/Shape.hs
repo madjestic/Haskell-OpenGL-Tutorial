@@ -77,30 +77,6 @@ type Side        = Float
 type Divisions   = Int
 type Texture     = String
 
--- toMinimal :: Color -> Shape -> Shape
--- toMinimal clr x = (cs,vs)
---     where
---            vs    = map toVertex4 $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
-
--- toPicture :: Color -> Shape -> Picture -- it's more like a UV projection
--- toPicture clr x = (cs,vs,uvs)
---     where
---            vs    = map toVertex4 $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
---            uvs   = toTextureCoord2 ps
---                where ps = [(1.0, 1.0),(0.0, 1.0),(0.0, 0.0)
---                           ,(1.0, 1.0),(0.0, 0.0),(1.0, 0.0)]::Points
-
--- toDrawable :: Color -> Shape -> Primitive
--- toDrawable clr x = (cs,vs)
---     where
---            vs    = map vertex $ toPoints x
---            color = getColor clr
---            cs    = map (\x -> color) $ vs
-
 type Drawable = ([Color4 Float],[Vertex4 Float],[TexCoord2 Float],String)
 
 class Primitive a where 
@@ -113,8 +89,8 @@ instance Primitive Shape where
                       vs'   = toPoints x
                       color = getColor clr
                       cs    = map (\_ -> color) vs'
-                      uv    = map toTexCoord2 vs'
                       vs    = map toVertex4 $ vs'
+                      uv    = map toTexCoord2 vs'
                       tex   = "test.png"
                       
          toPoints :: Shape -> [Point]
