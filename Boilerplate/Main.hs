@@ -53,18 +53,18 @@ toDrawable x = (vs, uv, tex)
            where
                vs'   = toPoints x               
                uv    = map toTexCoord2 vs'
-               vs    = map toVertex4 $ vs'
+               vs    = map toVertex4 vs'
                tex   = "test.png"                                                                   
 
 toVertex4 :: Point -> Vertex4 Float
-toVertex4 p = (\(k,l) -> Vertex4 k l 0 1) p
+toVertex4 (k, l) = Vertex4 k l 0 1
 
 toTexCoord2 :: (a, a) -> TexCoord2 a
-toTexCoord2 p = (\(k,l) -> TexCoord2 k l) p           
-           
+toTexCoord2 (k, l) = TexCoord2 k l
+
 toTextureCoord2 :: [Point] -> UV
 toTextureCoord2 xs = map (\(k,l) -> TexCoord2 k l) xs                                                                   
-                                                                   
+
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
