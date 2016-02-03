@@ -95,5 +95,3 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
   forever $ do
      GLFW.pollEvents
      onDisplay win descriptor
-     
-
