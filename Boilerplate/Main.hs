@@ -23,10 +23,10 @@ data Shape = Square    Point   Side
            deriving Show     
      
 type Drawable   = ([Vertex4 Float],[TexCoord2 Float],String)
-type UV         =[TexCoord2 Float] 
-type Point       =(Float, Float)
-type Points     =[Point]     
-type Side        = Float
+type UV         = [TexCoord2 Float] 
+type Point      = (Float, Float)
+type Points     = [Point]     
+type Side       = Float
 
 square :: Point -> Float -> [Point]
 square pos side = [p1, p2, p3,
@@ -44,7 +44,7 @@ toPoints :: Shape -> [Point]
 toPoints (Square   pos side)     =  square pos side
 
 toUV :: Projection -> UV
-toUV Planar = toTextureCoord2 ps
+toUV Planar = projectPlanar ps
                   where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
                              ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
                                                                    
@@ -62,9 +62,8 @@ toVertex4 (k, l) = Vertex4 k l 0 1
 toTexCoord2 :: (a, a) -> TexCoord2 a
 toTexCoord2 (k, l) = TexCoord2 k l
 
-toTextureCoord2 :: [Point] -> UV
-toTextureCoord2 xs = map (\(k,l) -> TexCoord2 k l) xs                                                                   
-
+projectPlanar :: [Point] -> UV
+projectPlanar = map $ uncurry TexCoord2                                                                   
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
