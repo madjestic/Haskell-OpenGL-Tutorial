@@ -1,5 +1,6 @@
 A basic OpenGL Haskell application. A "Hello World" of Haskell OpenGL.  
-Extended with basic callbacks and frawing functions. 
+Extended with basic callbacks and frawing functions.
+
 1. ESC to close the window.
 
 2. Resize call back to redraw the opengl context when the application window is resized.
