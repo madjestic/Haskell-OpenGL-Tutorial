@@ -8,14 +8,14 @@ module Main where
 
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
-import Graphics.GLUtil (readTexture, texture2DWrap)
+import Graphics.GLUtil (readTexture, texture2DWrap, setUniform)
+import Graphics.UI.GLUT.Debugging
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
 import Foreign.Marshal.Array (withArray)
 import Foreign.Ptr (plusPtr, nullPtr, Ptr)
 import Foreign.Storable (sizeOf)
 import NGL.LoadShaders
-
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 data Projection = Planar                
                 deriving Show 
@@ -133,7 +133,7 @@ initResources (vs, uv, tex) = do
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 4 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
-
+    
     --
     -- Declaring VBO: UVs
     --
@@ -144,11 +144,13 @@ initResources (vs, uv, tex) = do
     withArray uv $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head uv))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
+        
     let firstIndex = 0
-        uvCoords = AttribLocation 2
+        uvCoords = AttribLocation 1
     vertexAttribPointer uvCoords $=
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
-    vertexAttribArray uvCoords $= Enabled 
+    vertexAttribArray uvCoords $= Enabled
+  
 
 
     tx <- loadTex tex
@@ -160,6 +162,15 @@ initResources (vs, uv, tex) = do
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
+
+-- Set Uniforms
+    
+    let setUniform var val = do
+              location <- get (uniformLocation program var)
+              reportErrors
+              uniform location $= val
+              
+    setUniform "fTime" (20.0 :: GLfloat)
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
 

@@ -1,6 +1,7 @@
 all:
 	make clean
 	ghc ./Main.hs -o Main
+	gpu ./Main
 
 clean:
 	@if [ -f ./Main ];\
