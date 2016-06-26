@@ -1,0 +1,10 @@
+data Drawable = Shape | Picture
+data Picture = Shape Texture
+toPicture :: Shape -> Texture -> Picture
+data Texture = String
+draw :: Drawable -> IO ()
+
+data Animation = Drawable -> AnimationResource
+data AnimationResource  = [(Parameter -> Time)]
+Animation = Drawable -> [(Parameters -> Time)]
+animate :: Animation -> IO ()

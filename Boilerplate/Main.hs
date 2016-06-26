@@ -65,6 +65,9 @@ toTexCoord2 (k, l) = TexCoord2 k l
 projectPlanar :: [Point] -> UV
 projectPlanar = map $ uncurry TexCoord2                                                                   
 
+
+-- | Callbacks
+
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
 keyPressed _   _               _ _                     _ = return ()
@@ -84,33 +87,39 @@ resizeWindow win w h =
       GL.loadIdentity
       GL.ortho2D 0 (realToFrac w) (realToFrac h) 0   
 
-openWindow :: String -> (Int, Int) -> IO GLFW.Window
-openWindow title (sizex,sizey) = do
-    GLFW.init
-    GLFW.defaultWindowHints
-    Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
-    GLFW.makeContextCurrent (Just win)
-    GLFW.setWindowSizeCallback win (Just resizeWindow)
-    GLFW.setKeyCallback win (Just keyPressed)
-    GLFW.setWindowCloseCallback win (Just shutdown)
-    return win
 
-closeWindow :: GLFW.Window -> IO ()
-closeWindow win = do
-    GLFW.destroyWindow win
-    GLFW.terminate
+-- | init OpenGL and create an OpenGL window
 
-display :: Drawable -> IO ()
-display drawable = do
-     inWindow <- openWindow "NGL is Not GLoss" (512,512)
-     draw inWindow drawable
-     closeWindow inWindow
-                 
-draw :: GLFW.Window -> Drawable -> IO ()
-draw win xs = do
-    descriptor <- initResources xs
-    onDisplay win descriptor                 
-    
+initGL :: Drawable -> IO ()
+initGL drawable = do
+         GLFW.init
+         GLFW.defaultWindowHints
+         Just win   <- GLFW.createWindow 512 512 "Boilerplate" Nothing Nothing
+         GLFW.makeContextCurrent         (Just win)
+         GLFW.setWindowSizeCallback  win (Just resizeWindow)
+         GLFW.setKeyCallback         win (Just keyPressed)
+         GLFW.setWindowCloseCallback win (Just shutdown)
+         descriptor <- initResources drawable
+         update win descriptor
+         
+         GLFW.destroyWindow win
+         GLFW.terminate
+
+update :: GLFW.Window -> Descriptor -> IO ()
+update win descriptor@(Descriptor triangles firstIndex numVertices) = do
+  GL.clearColor $= Color4 0 0 0 1
+  GL.clear [ColorBuffer]
+  bindVertexArrayObject $= Just triangles
+  drawArrays Triangles firstIndex numVertices
+  GLFW.swapBuffers win
+
+  forever $ do
+     GLFW.pollEvents
+     update win descriptor
+
+
+  -- | allocate resources attribute buffer objects
+
 initResources :: ([Vertex4 Float],[TexCoord2 Float],String) -> IO Descriptor
 initResources (vs, uv, tex) = do
     triangles <- genObjectName
@@ -150,7 +159,6 @@ initResources (vs, uv, tex) = do
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
     vertexAttribArray uvCoords $= Enabled 
 
-
     tx <- loadTex tex
     texture Texture2D $= Enabled
     activeTexture $= TextureUnit 0
@@ -163,17 +171,6 @@ initResources (vs, uv, tex) = do
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
 
-onDisplay :: GLFW.Window -> Descriptor -> IO ()
-onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
-  GL.clearColor $= Color4 0 0 0 1
-  GL.clear [ColorBuffer]
-  bindVertexArrayObject $= Just triangles
-  drawArrays Triangles firstIndex numVertices
-  GLFW.swapBuffers win
-
-  forever $ do
-     GLFW.pollEvents
-     onDisplay win descriptor
                
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
@@ -187,4 +184,4 @@ loadTex f = do t <- either error id <$> readTexture f
 main :: IO ()
 main = do
      let drawable = toDrawable $ Square (-0.0, -0.0) 2.0
-     display drawable
+     initGL drawable
