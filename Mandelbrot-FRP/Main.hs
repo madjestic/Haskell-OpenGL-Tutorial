@@ -13,7 +13,7 @@ import Foreign.Ptr                         (plusPtr, nullPtr, Ptr)
 import Foreign.Storable                    (sizeOf)
 import Data.Text                           (unpack, Text)
 import NGL.LoadShaders
-import Unsafe.Coerce
+
 
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
@@ -21,10 +21,10 @@ data Projection = Planar
                 deriving Show 
 data Shape = Square    Point   Side
            deriving Show     
-     
+
 type Pos        = Double
 type Vel        = Double     
-     
+
 type Drawable   = ([Vertex4 Double],[TexCoord2 Double],String)
 type UV         = [TexCoord2 Double] 
 type Point      = (Double, Double)
@@ -50,7 +50,7 @@ toUV :: Projection -> UV
 toUV Planar = projectPlanar ps
                   where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
                              ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
-                                                                   
+
 toDrawable :: Shape -> Drawable
 toDrawable x = (vs, uv, tex)
            where
@@ -71,14 +71,14 @@ projectPlanar = map $ uncurry TexCoord2
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
 keyPressed _   _               _ _                     _ = return ()
-                                                                  
+
 shutdown :: GLFW.WindowCloseCallback
 shutdown win = do
   GLFW.destroyWindow win
   GLFW.terminate
   _ <- exitSuccess
   return ()                                                                  
-   
+
 resizeWindow :: GLFW.WindowSizeCallback
 resizeWindow win w h =
     do
@@ -86,7 +86,7 @@ resizeWindow win w h =
       GL.matrixMode $= GL.Projection
       GL.loadIdentity
       GL.ortho2D 0 (realToFrac w) (realToFrac h) 0   
-    
+
 openWindow :: Text -> (Int, Int) -> IO GLFW.Window
 openWindow title (sizex,sizey) = do
     GLFW.init
@@ -104,8 +104,8 @@ closeWindow win = do
     GLFW.terminate    
 
 draw :: GLFW.Window -> Drawable -> Double -> IO ()
-draw win drawable t = do
-           (Descriptor triangles firstIndex numVertices) <- initResources drawable t
+draw win drawable time = do
+           (Descriptor triangles firstIndex numVertices) <- initResources drawable time
 
            GL.clearColor $= Color4 0 0 0 1
            GL.clear [ColorBuffer]
@@ -114,10 +114,10 @@ draw win drawable t = do
 
            GLFW.swapBuffers win
            GLFW.pollEvents    
-     
-     
+
+
 initResources :: ([Vertex4 Double],[TexCoord2 Double],String) -> Double -> IO Descriptor
-initResources (vs, uv, tex) t = do
+initResources (vs, uv, tex) time = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
@@ -138,7 +138,7 @@ initResources (vs, uv, tex) t = do
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 4 Double 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
-    
+
     --
     -- Declaring VBO: UVs
     --
@@ -149,12 +149,12 @@ initResources (vs, uv, tex) t = do
     withArray uv $ \ptr -> do
         let size = fromIntegral (numVertices * sizeOf (head uv))
         bufferData ArrayBuffer $= (size, ptr, StaticDraw)
-        
+
     let uvCoords = AttribLocation 1
     vertexAttribPointer uvCoords $=
         (ToFloat, VertexArrayDescriptor 2 Double 0 (bufferOffset firstIndex))
     vertexAttribArray uvCoords $= Enabled
-  
+
     tx <- loadTex tex
     texture Texture2D $= Enabled
     activeTexture $= TextureUnit 0
@@ -164,17 +164,12 @@ initResources (vs, uv, tex) t = do
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
-                           
+
     -- Set Uniforms
     location <- get (uniformLocation program "fTime")
-    uniform location $= gf t
-                           
-    threadDelay 100000
+    uniform location $= (realToFrac time :: GLfloat)
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
-
-gf :: Double -> GLfloat
-gf = unsafeCoerce      
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
@@ -184,29 +179,35 @@ loadTex f = do t <- either error id <$> readTexture f
                textureFilter Texture2D $= ((Linear', Nothing), Linear')
                texture2DWrap $= (Repeated, ClampToEdge)
                return t                   
-        
+
 animate :: Text                  -- ^ window title
         -> Int                   -- ^ window width in pixels
         -> Int                   -- ^ window height in pixels
-        -> SF () (Pos, Vel)      -- ^ signal function to animate
+        -> SF () (Double)      -- ^ signal function to animate
         -> IO ()
 animate title winWidth winHeight sf = do
     win <- openWindow title (winWidth, winHeight)
 
     -- | main loop
     reactimate (return ()) 
-               (\_ -> threadDelay 100000 >> return (0.1, Nothing))
-               (\_ (pos,_) ->  print pos >> draw win ( toDrawable (Square (0.0, 0.0) 1.0)) pos >> return False)
+               (\_ -> threadDelay 50000 >> return (0.1, Nothing))
+               (\_ offset ->  print offset >> draw win ( toDrawable (Square (0.0, 0.0) 1.0)) offset >> return False)
                sf
 
     closeWindow win        
-    
+
+
 fallingBall :: Pos -> SF () (Pos, Vel)
 fallingBall y0 = proc _ -> do
-                         vel <- integral <<< constant 0.1 -< ()
+                         vel <- integral <<< constant 1 -< ()
                          pos <- (y0 +) ^<< integral -< vel
-                         returnA -< (pos, vel)    
+                         returnA -< (pos, vel)
+            
+counter :: Double -> SF () (Double)
+counter k = proc _ -> do
+                      offset <- (1 +) ^<< integral <<< constant 1 -< ()
+                      returnA -< (offset)
 
 main :: IO ()
 main =
-     animate "Mandelbrot" (round 640) (round 480) (fallingBall 0.0)           
+     animate "Mandelbrot" (round 640) (round 480) (counter 0)           

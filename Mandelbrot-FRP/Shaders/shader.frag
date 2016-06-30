@@ -16,13 +16,15 @@
 // More info here: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm
 
 in  vec2 fragCoord;
-in  float time;
+// in  float time;
 out vec4 fragColor;
+
+uniform float fTime;
 
 void main()
 {
   vec3  iResolution = vec3(1024, 1024, 1.0);
-  float iGlobalTime = time;
+  float iGlobalTime = fTime;
   vec2  p           = -3.0 + 5000.0 * fragCoord.xy / iResolution.xy;
   p.x              *= iResolution.x/iResolution.y;
 

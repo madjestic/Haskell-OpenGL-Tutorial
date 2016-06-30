@@ -1,5 +1,5 @@
 
-./Main.hs,1477
+./Main.hs,1497
 module Main Main2,3
 data Descriptor Descriptor18,19
 data Descriptor = Descriptor Descriptor18,19
@@ -42,18 +42,18 @@ draw draw105,106
 draw draw106,107
 initResources initResources118,119
 initResources initResources119,120
-gf gf175,176
-gf gf176,177
-bufferOffset bufferOffset178,179
-bufferOffset bufferOffset179,180
-loadTex loadTex181,182
-loadTex loadTex182,183
+bufferOffset bufferOffset173,174
+bufferOffset bufferOffset174,175
+loadTex loadTex176,177
+loadTex loadTex177,178
+animate animate182,183
 animate animate187,188
-animate animate192,193
-fallingBall fallingBall203,204
-fallingBall fallingBall204,205
-main main209,210
+fallingBall fallingBall199,200
+fallingBall fallingBall200,201
+counter counter205,206
+counter counter206,207
 main main210,211
+main main211,212
 
 ./TinyMath/TinyMath.hs,1455
 module TinyMath.TinyMath TinyMath.TinyMath0,1
@@ -107,62 +107,6 @@ addVectors addVectors143,144
 addVectors addVectors144,145
 unzip4 unzip4147,148
 unzip4 unzip4148,149
-
-./Main_flymake.hs,1477
-module Main Main2,3
-data Descriptor Descriptor18,19
-data Descriptor = Descriptor Descriptor18,19
-data Projection Projection19,20
-data Projection = PlanarPlanar19,20
-data Shape Shape21,22
-data Shape = Square Square21,22
-type Pos Pos24,25
-type Vel Vel25,26
-type Drawable Drawable27,28
-type UV UV28,29
-type Point Point29,30
-type Points Points30,31
-type Side Side31,32
-square square33,34
-square square34,35
-toPoints toPoints45,46
-toPoints toPoints46,47
-toUV toUV48,49
-toUV toUV49,50
-toDrawable toDrawable53,54
-toDrawable toDrawable54,55
-toVertex4 toVertex461,62
-toVertex4 toVertex462,63
-toTexCoord2 toTexCoord264,65
-toTexCoord2 toTexCoord265,66
-projectPlanar projectPlanar67,68
-projectPlanar projectPlanar68,69
-keyPressed keyPressed70,71
-keyPressed keyPressed71,72
-shutdown shutdown74,75
-shutdown shutdown75,76
-resizeWindow resizeWindow81,82
-resizeWindow resizeWindow82,83
-openWindow openWindow89,90
-openWindow openWindow90,91
-closeWindow closeWindow100,101
-closeWindow closeWindow101,102
-draw draw105,106
-draw draw106,107
-initResources initResources118,119
-initResources initResources119,120
-gf gf175,176
-gf gf176,177
-bufferOffset bufferOffset178,179
-bufferOffset bufferOffset179,180
-loadTex loadTex181,182
-loadTex loadTex182,183
-animate animate187,188
-animate animate192,193
-fallingBall fallingBall203,204
-fallingBall fallingBall204,205
-main main209,210
-main main210,211
 
 ./NGL/Linear.hs,812
 module Main Main6,7
