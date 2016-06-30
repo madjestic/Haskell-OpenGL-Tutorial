@@ -1,3 +1,0 @@
-rm -rf ./*.hs~
-rm -rf ./*.hi
-rm -rf ./*.o

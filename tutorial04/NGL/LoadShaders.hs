@@ -1,3 +1,18 @@
+--------------------------------------------------------------------------------
+-- |
+-- Module      :  LoadShaders
+-- Copyright   :  (c) Sven Panne 2013
+-- License     :  BSD3
+--
+-- Maintainer  :  Sven Panne <svenpanne@gmail.com>
+-- Stability   :  stable
+-- Portability :  portable
+--
+-- Utilities for shader handling, adapted from LoadShaders.cpp which is (c) The
+-- Red Book Authors.
+--
+--------------------------------------------------------------------------------
+
 module NGL.LoadShaders (
    ShaderSource(..), ShaderInfo(..), loadShaders
 ) where

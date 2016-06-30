@@ -20,7 +20,7 @@ data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 data Projection = Planar                
                 deriving Show 
 data Shape = Square    Point   Side
-           deriving Show     
+                deriving Show     
 
 type Pos        = Double
 type Vel        = Double     
@@ -44,7 +44,7 @@ square pos side = [p1, p2, p3,
         p4 = (x + r, y - r)
 
 toPoints :: Shape -> [Point]
-toPoints (Square   pos side)     =  square pos side
+toPoints (Square pos side) =  square pos side
 
 toUV :: Projection -> UV
 toUV Planar = projectPlanar ps
@@ -53,20 +53,20 @@ toUV Planar = projectPlanar ps
 
 toDrawable :: Shape -> Drawable
 toDrawable x = (vs, uv, tex)
-           where
-               vs'   = toPoints x               
-               uv    = map toTexCoord2 vs'
-               vs    = map toVertex4 vs'
-               tex   = "test.png"                                                                   
+                  where
+                      vs'  = toPoints x               
+                      uv   = map toTexCoord2 vs'
+                      vs   = map toVertex4 vs'
+                      tex  = "test.png"                                                                   
 
 toVertex4 :: Point -> Vertex4 Double
-toVertex4 (k, l) = Vertex4 k l 0 1
+toVertex4 (k, l)   = Vertex4 k l 0 1
 
 toTexCoord2 :: (a, a) -> TexCoord2 a
 toTexCoord2 (k, l) = TexCoord2 k l
 
 projectPlanar :: [Point] -> UV
-projectPlanar = map $ uncurry TexCoord2                                                                   
+projectPlanar      = map $ uncurry TexCoord2                                                                   
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
@@ -183,7 +183,7 @@ loadTex f = do t <- either error id <$> readTexture f
 animate :: Text                  -- ^ window title
         -> Int                   -- ^ window width in pixels
         -> Int                   -- ^ window height in pixels
-        -> SF () (Double)      -- ^ signal function to animate
+        -> SF () (Double)        -- ^ signal function to animate
         -> IO ()
 animate title winWidth winHeight sf = do
     win <- openWindow title (winWidth, winHeight)
