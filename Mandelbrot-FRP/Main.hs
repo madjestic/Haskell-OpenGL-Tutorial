@@ -2,18 +2,17 @@
 {-# LANGUAGE Arrows #-}
 module Main where 
 
-import FRP.Yampa
 import Control.Concurrent
-import Graphics.Rendering.OpenGL as GL
-import Graphics.UI.GLFW as GLFW
-import Graphics.GLUtil                     (readTexture, texture2DWrap)
-import System.Exit                         (exitSuccess)
+import Data.Text                           (unpack, Text)
+import FRP.Yampa
 import Foreign.Marshal.Array               (withArray)
 import Foreign.Ptr                         (plusPtr, nullPtr, Ptr)
 import Foreign.Storable                    (sizeOf)
-import Data.Text                           (unpack, Text)
+import Graphics.Rendering.OpenGL as GL
+import Graphics.UI.GLFW as GLFW
+import Graphics.GLUtil                     (readTexture, texture2DWrap)
 import NGL.LoadShaders
-
+import System.Exit                         (exitSuccess)
 
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
@@ -22,14 +21,17 @@ data Projection = Planar
 data Shape = Square    Point   Side
                 deriving Show     
 
+
 type Pos        = Double
 type Vel        = Double     
+
 
 type Drawable   = ([Vertex4 Double],[TexCoord2 Double],String)
 type UV         = [TexCoord2 Double] 
 type Point      = (Double, Double)
 type Points     = [Point]     
 type Side       = Double
+
 
 square :: Point -> Double -> [Point]
 square pos side = [p1, p2, p3,
@@ -43,13 +45,16 @@ square pos side = [p1, p2, p3,
         p3 = (x - r, y - r)
         p4 = (x + r, y - r)
 
+
 toPoints :: Shape -> [Point]
 toPoints (Square pos side) =  square pos side
+
 
 toUV :: Projection -> UV
 toUV Planar = projectPlanar ps
                   where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
                              ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
+
 
 toDrawable :: Shape -> Drawable
 toDrawable x = (vs, uv, tex)
@@ -59,18 +64,23 @@ toDrawable x = (vs, uv, tex)
                       vs   = map toVertex4 vs'
                       tex  = "test.png"                                                                   
 
+
 toVertex4 :: Point -> Vertex4 Double
 toVertex4 (k, l)   = Vertex4 k l 0 1
+
 
 toTexCoord2 :: (a, a) -> TexCoord2 a
 toTexCoord2 (k, l) = TexCoord2 k l
 
+
 projectPlanar :: [Point] -> UV
 projectPlanar      = map $ uncurry TexCoord2                                                                   
+
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
 keyPressed _   _               _ _                     _ = return ()
+
 
 shutdown :: GLFW.WindowCloseCallback
 shutdown win = do
@@ -79,6 +89,7 @@ shutdown win = do
   _ <- exitSuccess
   return ()                                                                  
 
+
 resizeWindow :: GLFW.WindowSizeCallback
 resizeWindow win w h =
     do
@@ -86,6 +97,7 @@ resizeWindow win w h =
       GL.matrixMode $= GL.Projection
       GL.loadIdentity
       GL.ortho2D 0 (realToFrac w) (realToFrac h) 0   
+
 
 openWindow :: Text -> (Int, Int) -> IO GLFW.Window
 openWindow title (sizex,sizey) = do
@@ -98,10 +110,12 @@ openWindow title (sizex,sizey) = do
     GLFW.setWindowCloseCallback win (Just shutdown)
     return win
 
+
 closeWindow :: GLFW.Window -> IO ()
 closeWindow win = do
     GLFW.destroyWindow win
     GLFW.terminate    
+
 
 draw :: GLFW.Window -> Drawable -> Double -> IO ()
 draw win drawable time = do
@@ -171,14 +185,17 @@ initResources (vs, uv, tex) time = do
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
 
+
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
+
 
 loadTex :: FilePath -> IO TextureObject
 loadTex f = do t <- either error id <$> readTexture f
                textureFilter Texture2D $= ((Linear', Nothing), Linear')
                texture2DWrap $= (Repeated, ClampToEdge)
                return t                   
+
 
 animate :: Text                  -- ^ window title
         -> Int                   -- ^ window width in pixels
@@ -197,16 +214,11 @@ animate title winWidth winHeight sf = do
     closeWindow win        
 
 
-fallingBall :: Pos -> SF () (Pos, Vel)
-fallingBall y0 = proc _ -> do
-                         vel <- integral <<< constant 1 -< ()
-                         pos <- (y0 +) ^<< integral -< vel
-                         returnA -< (pos, vel)
-            
 counter :: Double -> SF () (Double)
 counter k = proc _ -> do
                       offset <- (1 +) ^<< integral <<< constant 1 -< ()
                       returnA -< (offset)
+
 
 main :: IO ()
 main =
