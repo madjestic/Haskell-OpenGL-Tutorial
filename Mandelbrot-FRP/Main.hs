@@ -20,7 +20,10 @@ data Projection = Planar
                 deriving Show 
 data Shape = Square    Point   Side
                 deriving Show     
+<<<<<<< HEAD
 
+=======
+>>>>>>> cf5db88f912e7eded1a689c2ebc62fb32c4ae692
 
 type Pos        = Double
 type Vel        = Double     
@@ -48,7 +51,10 @@ square pos side = [p1, p2, p3,
 
 toPoints :: Shape -> [Point]
 toPoints (Square pos side) =  square pos side
+<<<<<<< HEAD
 
+=======
+>>>>>>> cf5db88f912e7eded1a689c2ebc62fb32c4ae692
 
 toUV :: Projection -> UV
 toUV Planar = projectPlanar ps
@@ -63,11 +69,17 @@ toDrawable x = (vs, uv, tex)
                       uv   = map toTexCoord2 vs'
                       vs   = map toVertex4 vs'
                       tex  = "test.png"                                                                   
+<<<<<<< HEAD
 
 
 toVertex4 :: Point -> Vertex4 Double
 toVertex4 (k, l)   = Vertex4 k l 0 1
 
+=======
+
+toVertex4 :: Point -> Vertex4 Double
+toVertex4 (k, l)   = Vertex4 k l 0 1
+>>>>>>> cf5db88f912e7eded1a689c2ebc62fb32c4ae692
 
 toTexCoord2 :: (a, a) -> TexCoord2 a
 toTexCoord2 (k, l) = TexCoord2 k l
@@ -75,7 +87,10 @@ toTexCoord2 (k, l) = TexCoord2 k l
 
 projectPlanar :: [Point] -> UV
 projectPlanar      = map $ uncurry TexCoord2                                                                   
+<<<<<<< HEAD
 
+=======
+>>>>>>> cf5db88f912e7eded1a689c2ebc62fb32c4ae692
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
