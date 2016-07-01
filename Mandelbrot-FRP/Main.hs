@@ -116,8 +116,8 @@ closeWindow win = do
 
 
 draw :: GLFW.Window -> Drawable -> Double -> IO ()
-draw win drawable timer1 = do
-           (Descriptor triangles firstIndex numVertices) <- initResources drawable timer1
+draw win drawable timer2 = do
+           (Descriptor triangles firstIndex numVertices) <- initResources drawable timer2
 
            GL.clearColor $= Color4 0 0 0 1
            GL.clear [ColorBuffer]
@@ -129,7 +129,7 @@ draw win drawable timer1 = do
 
 
 initResources :: ([Vertex4 Double],[TexCoord2 Double],String) -> Double -> IO Descriptor
-initResources (vs, uv, tex) timer1 = do
+initResources (vs, uv, tex) timer2 = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
@@ -179,7 +179,7 @@ initResources (vs, uv, tex) timer1 = do
 
     -- Set Uniforms
     location <- get (uniformLocation program "fTime")
-    uniform location $= (realToFrac timer1 :: GLfloat)
+    uniform location $= (realToFrac timer2 :: GLfloat)
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
 
@@ -206,7 +206,7 @@ animate title winWidth winHeight sf = do
     -- | main loop
     reactimate (return ()) 
                (\_ -> threadDelay 50000 >> return (0.1, Nothing))
-               (\_ timer1 ->  print timer1 >> draw win ( toDrawable (Square (0.0, 0.0) 1.0)) timer1 >> return False)
+               (\_ timer2 ->  print timer2 >> draw win ( toDrawable (Square (0.0, 0.0) 1.0)) timer2 >> return False)
                sf
 
     closeWindow win        
@@ -214,8 +214,8 @@ animate title winWidth winHeight sf = do
 
 counter :: Double -> SF () Double
 counter k = proc _ -> do
-                      timer1 <- (k +) ^<< integral <<< constant 1 -< ()
-                      returnA -< timer1
+                      timer2 <- (k +) ^<< integral <<< constant 1 -< ()
+                      returnA -< timer2
 
 
 main :: IO ()
