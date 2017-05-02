@@ -9,3 +9,9 @@ in order to run:
   $ make
   $ optirun -b primus ./Main
 ```
+
+Controls:
+```bash
+  space - zoom in
+  q     - reset
+```
