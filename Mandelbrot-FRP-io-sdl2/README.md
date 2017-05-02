@@ -11,7 +11,7 @@ in order to run:
 ```
 
 Controls:
-```bash
+```
   space - zoom in
   q     - reset
 ```
