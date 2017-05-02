@@ -205,8 +205,8 @@ animate title winWidth winHeight sf = do
 
     -- | main loop
     reactimate (return ()) 
-               (\_ -> threadDelay 50000 >> return (0.1, Nothing))
-               (\_ timer ->  print timer >> draw win ( toDrawable (Square (0.0, 0.0) 1.0)) timer >> return False)
+               (\_ -> threadDelay 5000 >> return (0.1, Nothing))
+               (\_ timer ->  draw win ( toDrawable (Square (0.0, 0.0) 1.0)) timer >> return False)
                sf
 
     closeWindow win        
