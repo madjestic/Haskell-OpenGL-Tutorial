@@ -10,7 +10,6 @@ data AppInput = AppInput
     , inpMouseLeft  :: Maybe (Double, Double)  -- ^ Left button currently down
     , inpMouseRight :: Maybe (Double, Double)  -- ^ Right button currently down
     , inpKeyPressed :: Maybe SDL.Scancode
-    , inpKeyEvent   :: Maybe SDL.KeyboardEventData
     , inpKeyRepeat  :: Bool
     , inpQuit       :: Bool                    -- ^ SDL's QuitEvent
     }
@@ -20,7 +19,6 @@ initAppInput = AppInput { inpMousePos   = (0, 0)
                         , inpMouseLeft  = Nothing
                         , inpMouseRight = Nothing
                         , inpKeyPressed = Nothing
-                        , inpKeyEvent   = Nothing
                         , inpKeyRepeat  = False
                         , inpQuit       = False
                         }
