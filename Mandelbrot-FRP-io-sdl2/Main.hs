@@ -55,7 +55,7 @@ toUV :: Projection -> UV
 toUV Planar =
   projectPlanar ps
                   where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
-                             ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
+                             ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)] :: Points
 
 toDrawable :: Shape -> Drawable
 toDrawable x = map toVertex4 $ toPoints x
@@ -173,15 +173,14 @@ animate title winWidth winHeight sf = do
 
     lastInteraction <- newMVar =<< SDL.time   
       
-    let senseInput _canBlock = do
+    let senseInput _ = do
             currentTime <- SDL.time                          
             dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
             mEvent <- SDL.pollEvent                          
             return (dt, Event . SDL.eventPayload <$> mEvent) 
 
-        renderOutput changed (timer, shouldExit) = do
-            when changed $ do
-                 draw window ( toDrawable (Square (0.0, 0.0) 1.0)) timer
+        renderOutput _ (timer, shouldExit) = do
+            draw window ( toDrawable (Square (0.0, 0.0) 1.0)) timer
             return shouldExit 
 
     reactimate (return NoEvent)
@@ -192,6 +191,27 @@ animate title winWidth winHeight sf = do
     closeWindow window
 
 -- < Input Handling > -----------------------------------------------------
+
+stateA :: Double -> SF AppInput Double
+stateA k0 =
+  switch sf cont
+    where
+         sf = proc input -> do
+            timer    <- constant k0 -< ()
+            zoomIn   <- trigger -< input
+            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+         cont x = stateB (x)
+
+stateB :: Double -> SF AppInput Double
+stateB k0 =
+  switch sf cont
+    where
+         sf = proc input -> do
+            timer    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
+            zoomIn   <- untrigger -< input
+            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+         cont x = stateA (x)
+
 counter :: Double -> SF AppInput Double
 counter k0 =
   switch sf cont
@@ -205,8 +225,17 @@ counter k0 =
 trigger :: SF AppInput (Event ())
 trigger =
   proc input -> do
-    upTap   <- keyPressed ScancodeSpace -< input
-    returnA -< upTap
+    -- | Desired tested behavior: tap and keep Space key tapped (assuming that SDL.keyboardEventRepeat is what we need)
+    upTapHold   <- keyPressedRepeat (SDL.ScancodeSpace, True) -< input
+    upTap       <- keyPressed       (SDL.ScancodeSpace)       -< input
+    returnA     -< lMerge upTap upTapHold
+
+untrigger :: SF AppInput (Event ())
+untrigger =
+  proc input -> do
+    -- | Desired tested behavior: tap and keep Space key tapped (assuming that SDL.keyboardEventRepeat is what we need)
+    unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
+    returnA  -< unTap
 
 initClip :: Double
 initClip = 0
@@ -220,7 +249,8 @@ exitTrigger =
 -- < Game Logic > ---------------------------------------------------------
 gameSession :: SF AppInput Game
 gameSession = proc input -> do
-     timer <- counter initClip -< input
+     -- timer <- counter initClip -< input
+     timer <- stateA initClip -< input
      returnA -< Game timer
 
 game :: SF AppInput Game
