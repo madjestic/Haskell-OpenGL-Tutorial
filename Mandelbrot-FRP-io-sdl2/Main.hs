@@ -192,48 +192,36 @@ animate title winWidth winHeight sf = do
 
 -- < Input Handling > -----------------------------------------------------
 
-stateA :: Double -> SF AppInput Double
-stateA k0 =
+stateReleased :: Double -> SF AppInput Double
+stateReleased k0 =
   switch sf cont
     where
          sf = proc input -> do
             timer    <- constant k0 -< ()
             zoomIn   <- trigger -< input
             returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
-         cont x = stateB (x)
+         cont x = stateTriggered (x)
 
-stateB :: Double -> SF AppInput Double
-stateB k0 =
+stateTriggered :: Double -> SF AppInput Double
+stateTriggered k0 =
   switch sf cont
     where
          sf = proc input -> do
             timer    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
-            zoomIn   <- untrigger -< input
+            zoomIn   <- release -< input
             returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
-         cont x = stateA (x)
-
-counter :: Double -> SF AppInput Double
-counter k0 =
-  switch sf cont
-    where
-         sf = proc input -> do
-            timer    <- constant k0 -< ()
-            zoomIn   <- trigger -< input
-            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
-         cont x = counter (x + 0.1)
+         cont x = stateReleased (x)
 
 trigger :: SF AppInput (Event ())
 trigger =
   proc input -> do
-    -- | Desired tested behavior: tap and keep Space key tapped (assuming that SDL.keyboardEventRepeat is what we need)
     upTapHold   <- keyPressedRepeat (SDL.ScancodeSpace, True) -< input
     upTap       <- keyPressed       (SDL.ScancodeSpace)       -< input
     returnA     -< lMerge upTap upTapHold
 
-untrigger :: SF AppInput (Event ())
-untrigger =
+release :: SF AppInput (Event ())
+release =
   proc input -> do
-    -- | Desired tested behavior: tap and keep Space key tapped (assuming that SDL.keyboardEventRepeat is what we need)
     unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
     returnA  -< unTap
 
@@ -249,8 +237,7 @@ exitTrigger =
 -- < Game Logic > ---------------------------------------------------------
 gameSession :: SF AppInput Game
 gameSession = proc input -> do
-     -- timer <- counter initClip -< input
-     timer <- stateA initClip -< input
+     timer <- stateReleased initClip -< input
      returnA -< Game timer
 
 game :: SF AppInput Game

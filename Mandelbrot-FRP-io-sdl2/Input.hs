@@ -61,19 +61,19 @@ rbDown = arr (isJust . inpMouseRight)
 keyPress :: SF AppInput (Event SDL.Scancode)
 keyPress = inpKeyPressed ^>> edgeJust
 
-keyRelease :: SF AppInput (Event SDL.Scancode)
-keyRelease = inpKeyReleased ^>> edgeJust
-
-keyPressRepeat :: SF AppInput (Event Bool)
-keyPressRepeat = inpKeyRepeat ^>> (edge >>^ tagWith True)
-
 keyPressed :: SDL.Scancode -> SF AppInput (Event ())
 keyPressed code =
   keyPress >>^ filterE (code ==) >>^ tagWith ()
 
+keyRelease :: SF AppInput (Event SDL.Scancode)
+keyRelease = inpKeyReleased ^>> edgeJust
+
 keyReleased :: SDL.Scancode -> SF AppInput (Event ())
 keyReleased code =
   keyRelease >>^ filterE (code ==) >>^ tagWith ()
+
+keyPressRepeat :: SF AppInput (Event Bool)
+keyPressRepeat = inpKeyRepeat ^>> (edge >>^ tagWith True)
 
 keyPressedRepeat :: (SDL.Scancode, Bool) -> SF AppInput (Event ())
 keyPressedRepeat (code, rep) =
@@ -83,11 +83,6 @@ quitEvent :: SF AppInput (Event ())
 quitEvent = arr inpQuit >>> edge
 
 -- | Exported as abstract type. Fields are accessed with signal functions.
-
--- |Refactor:
--- |inpKeyPressed :: Maybe SDL.Scancode
--- |->
--- |inpKeyPressed :: Maybe Event
 data AppInput = AppInput
     { inpMousePos    :: (Double, Double)        -- ^ Current mouse position
     , inpMouseLeft   :: Maybe (Double, Double)  -- ^ Left button currently down
@@ -114,7 +109,6 @@ parseWinInput :: SF WinInput AppInput
 parseWinInput = accumHoldBy nextAppInput initAppInput
 
 -- | Compute next input
---   FIXME: I am reinventing lenses once again
 nextAppInput :: AppInput -> SDL.EventPayload -> AppInput
 nextAppInput inp SDL.QuitEvent = inp { inpQuit = True }
 nextAppInput inp (SDL.MouseMotionEvent ev) =
