@@ -88,6 +88,12 @@ projectPlanar      = map $ uncurry TexCoord2
 -- < Reading PGeo > --------------------------------------------------------
 data Tuples = Tuples [Point3] deriving Show
 
+data Geo =
+     Geo
+     {
+       positions :: [Vertex4 Double]
+     } deriving Show
+
 data PGeo =
      PGeo
      {
@@ -108,12 +114,6 @@ instance FromJSON Tuples where
     parseJSON _ = mzero
 
 type Positions = [Vertex4 Double] 
-
-data Geo =
-     Geo
-     {
-       positions :: [Vertex4 Double]
-     } deriving Show
 
 data Transform = Transform {}
 
