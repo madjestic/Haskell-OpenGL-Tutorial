@@ -24,7 +24,7 @@ import Input
 import Types
 
 -- < Game Types > ---------------------------------------------------------
-data Game       = Game { clipPos :: Double  }
+data Game       = Game { time :: Double  }
                 deriving Show
 
 type Clip       = Double
@@ -113,15 +113,9 @@ data Geo =
      Geo
      {
        positions :: [Vertex4 Double]
-     , time1     :: Time
      } deriving Show
 
 data Transform = Transform {}
-
-newGeo :: Maybe Positions
-       -> Maybe Time
-       -> Geo
-newGeo = undefined       
 
 defaultGeo :: Geo
 defaultGeo = undefined
@@ -129,16 +123,13 @@ defaultGeo = undefined
 jsonFile :: FilePath
 jsonFile = "model.pgeo"           
 
-getJSON :: IO B.ByteString
-getJSON = B.readFile jsonFile
-
-fromPGeo :: PGeo -> [Point3]
-fromPGeo (PGeo {tuples = x}) = x
+getJSON :: FilePath -> IO B.ByteString
+getJSON jsonFile = B.readFile jsonFile
 
 readPositions :: IO [Point3]
 readPositions =
   do
-    d <- (eitherDecode <$> getJSON) :: IO (Either String PGeo)
+    d <- (eitherDecode <$> getJSON jsonFile) :: IO (Either String PGeo)
     let positions =
           tuples . fromJust $ fromEitherDecode d
           where
@@ -180,8 +171,8 @@ closeWindow window = do
     SDL.quit
 
 draw :: SDL.Window -> Drawable -> Double -> IO ()
-draw window drawable timer = do
-      (Descriptor triangles firstIndex numVertices) <- initResources drawable timer
+draw window drawable offset = do
+      (Descriptor triangles firstIndex numVertices) <- initResources drawable offset
 
       GL.clearColor $= Color4 0 0 0 1
       GL.clear [ColorBuffer]
@@ -194,7 +185,7 @@ draw window drawable timer = do
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
 initResources :: ([Vertex4 Double]) -> Double -> IO Descriptor
-initResources (vs) timer = do
+initResources (vs) offset = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
@@ -239,7 +230,7 @@ initResources (vs) timer = do
 
     -- Set Uniforms
     location <- get (uniformLocation program "fTime")
-    uniform location $= (realToFrac timer :: GLfloat)
+    uniform location $= (realToFrac offset :: GLfloat)
 
     return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
 
@@ -266,8 +257,8 @@ animate title winWidth winHeight sf = do
             mEvent <- SDL.pollEvent                          
             return (dt, Event . SDL.eventPayload <$> mEvent) 
 
-        renderOutput _ (timer, shouldExit) = do
-            draw window ( toDrawable (Square (0.0, 0.0) 1.0)) timer
+        renderOutput _ (offset, shouldExit) = do
+            draw window ( toDrawable (Square (0.0, 0.0) 1.0)) offset
             return shouldExit 
 
     reactimate (return NoEvent)
@@ -284,9 +275,9 @@ stateReleased k0 =
   switch sf cont
     where
          sf = proc input -> do
-            timer    <- constant k0 -< ()
+            offset    <- constant k0 -< ()
             zoomIn   <- trigger -< input
-            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+            returnA  -< (offset, zoomIn `tag` offset):: (Double, Event Double)
          cont x = stateTriggered (x)
 
 stateTriggered :: Double -> SF AppInput Double
@@ -294,9 +285,9 @@ stateTriggered k0 =
   switch sf cont
     where
          sf = proc input -> do
-            timer    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
+            offset    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
             zoomIn   <- release -< input
-            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+            returnA  -< (offset, zoomIn `tag` offset):: (Double, Event Double)
          cont x = stateReleased (x)
 
 trigger :: SF AppInput (Event ())
@@ -324,18 +315,18 @@ exitTrigger =
 -- < Game Logic > ---------------------------------------------------------
 gameSession :: SF AppInput Game
 gameSession = proc input -> do
-     timer <- stateReleased initClip -< input
-     returnA -< Game timer
+     offset <- stateReleased initClip -< input
+     returnA -< Game offset
 
 game :: SF AppInput Game
 game = switch sf (\_ -> game)        
      where sf = proc input -> do
                      gameState <- gameSession  -< input
-                     gameOver  <- exitTrigger -< input
+                     gameOver  <- exitTrigger  -< input
                      returnA   -< (gameState, gameOver)
 
-render :: Game -> Clip
-render (Game clipPos) = clipPos
+render :: Game -> Time
+render (Game time) = time
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
