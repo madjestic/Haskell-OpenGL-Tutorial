@@ -1,4 +1,7 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE OverloadedStrings, Arrows #-}
 module Main where 
 
@@ -11,14 +14,14 @@ import Foreign.Marshal.Array                  (withArray)
 import Foreign.Ptr                            (plusPtr, nullPtr, Ptr)
 import Foreign.Storable                       (sizeOf)
 import FRP.Yampa
-import Graphics.Rendering.OpenGL as GL hiding (Size, Position)
+import Graphics.Rendering.OpenGL as GL hiding (Size, Position, Point)
 import NGL.LoadShaders
 import System.IO
 import System.FilePath
 import Control.Exception
 import qualified Data.ByteString.Lazy as B
 
-import SDL                             hiding (Point2, Event)
+import SDL                             hiding (Point, Point2, Point3, Event)
 
 import Input
 import Types
@@ -32,18 +35,39 @@ type Clip       = Double
 -- < NGL (NGL is not a Graphics Library) > --------------------------------
 data Projection = Planar                
                 deriving Show 
-data Shape      = Square Point2 Size
+data Shape2     = Square Point2 Size deriving Show
+
+data Shape3     = Geo
+                  {
+                    positions :: [ Point3 ] 
+                  }
                 deriving Show
 
 type Drawable   = [Vertex4 Double]
 type UV         = [TexCoord2 Double]
-data Point      = Point2
-                | Point3
+
 type Point2     = (Double, Double)
 type Point3     = (Double, Double, Double)
 type Size       = Double
 
+class Point2Vertex a where
+  toVertex4  :: a -> Vertex4 Double
+instance Point2Vertex Point2 where
+  toVertex4 :: Point2 -> Vertex4 Double
+  toVertex4 (k, l)    = Vertex4 k l 0 1
+instance Point2Vertex Point3 where
+  toVertex4 :: Point3 -> Vertex4 Double
+  toVertex4 (k, l, m) = Vertex4 k l m 1
 
+class Shape2Drawable a where
+  toDrawable :: a -> Drawable
+instance Shape2Drawable Shape2 where
+  toDrawable :: Shape2 -> Drawable
+  toDrawable x = map toVertex4 $ toPoint2s x
+instance Shape2Drawable Shape3 where
+  toDrawable :: Shape3 -> Drawable
+  toDrawable x = map toVertex4 $ toPoint3s x
+  
 square :: Point2 -> Double -> [Point2]
 square pos side = [p1, p2, p3,
                    p1, p3, p4]
@@ -62,22 +86,18 @@ liftPoint2 (x,y) = (x, y, 0.0)
 
 liftPoint2s :: [Point2] -> [Point3]
 liftPoint2s = map liftPoint2
-  
 
-shape2Point2s :: Shape -> [Point2]
-shape2Point2s (Square pos side) =  square pos side
+toPoint2s :: Shape2 -> [Point2]
+toPoint2s (Square pos side) =  square pos side
+
+toPoint3s :: Shape3 -> [Point3]
+toPoint3s Geo { positions } = positions
 
 toUV :: Projection -> UV
 toUV Planar =
   projectPlanar ps
                   where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
                              ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)] :: [Point2]
-
-toDrawable :: Shape -> Drawable
-toDrawable x = map toVertex4 $ shape2Point2s x
-
-toVertex4 :: Point2 -> Vertex4 Double
-toVertex4 (k, l)   = Vertex4 k l 0 1
 
 toTexCoord2 :: (a, a) -> TexCoord2 a
 toTexCoord2 (k, l) = TexCoord2 k l
@@ -88,16 +108,10 @@ projectPlanar      = map $ uncurry TexCoord2
 -- < Reading PGeo > --------------------------------------------------------
 data Tuples = Tuples [Point3] deriving Show
 
-data Geo =
-     Geo
-     {
-       positions :: [Vertex4 Double]
-     } deriving Show
-
 data PGeo =
      PGeo
      {
-       tuples :: [Point3] -- tuples of vertices positions
+       tuples :: [Point3] -- tuples of vertices positions as Point3
      } deriving Show
 
 instance FromJSON PGeo where
@@ -117,9 +131,7 @@ type Positions = [Vertex4 Double]
 
 data Transform = Transform {}
 
-defaultGeo :: Geo
-defaultGeo = undefined
-       
+
 jsonFile :: FilePath
 jsonFile = "model.pgeo"           
 
@@ -258,8 +270,15 @@ animate title winWidth winHeight sf = do
             return (dt, Event . SDL.eventPayload <$> mEvent) 
 
         renderOutput _ (offset, shouldExit) = do
-            draw window ( toDrawable (Square (0.0, 0.0) 1.0)) offset
+            ps <- readPositions
+            --let ps  = concat $ fmap (\(x,y,z) -> [x,y,z]) ps_
+            -- | redo to map to Point3 and then use toVertex4 to
+            -- | convert to Vertex4 ^^
+                
+            let geo = Geo ps
+            draw window ( toDrawable geo) offset
             return shouldExit 
+            -- draw window ( toDrawable (Square (0.0, 0.0) 1.0)) offset
 
     reactimate (return NoEvent)
                senseInput
@@ -333,6 +352,6 @@ handleExit = quitEvent >>^ isEvent
 
 -- < Main Function > -----------------------------------------------------------
 main :: IO ()
-main =
+main = do
      animate "Mandelbrot" 640 480
-                          (parseWinInput >>> ((game >>^ render) &&& handleExit))
+                         (parseWinInput >>> ((game >>^ render) &&& handleExit))

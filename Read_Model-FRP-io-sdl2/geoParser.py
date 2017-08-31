@@ -1,0 +1,1 @@
+/home/madjestic/Projects/Parser/geoParser.py
