@@ -256,5 +256,5 @@ handleExit = quitEvent >>^ isEvent
 -- < Main Function > -----------------------------------------------------------
 main :: IO ()
 main =
-     animate "Mandelbrot" 640 480
+     animate "Mandelbrot" 800 600
                           (parseWinInput >>> ((game >>^ render) &&& handleExit))
