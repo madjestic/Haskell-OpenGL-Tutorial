@@ -1,15 +1,12 @@
 module Main where
 
 import Graphics.Rendering.OpenGL as GL
-import Graphics.GL.Core33
-import Graphics.GL.Types
 import Graphics.UI.GLFW as GLFW
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
-import Foreign.Marshal.Array (withArray, newArray)
-import Foreign.Marshal.Alloc  
-import Foreign.Ptr (castPtr, plusPtr, nullPtr, Ptr)
-import Foreign.Storable (sizeOf, peek)
+import Foreign.Marshal.Array (withArray)
+import Foreign.Ptr (plusPtr, nullPtr, Ptr)
+import Foreign.Storable (sizeOf)
 import NGL.LoadShaders
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
@@ -73,10 +70,10 @@ openWindow :: String -> (Int, Int) -> IO GLFW.Window
 openWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
-    -- GLFW.windowHint (GLFW.WindowHint'ContextVersionMajor 3)
-    -- GLFW.windowHint (GLFW.WindowHint'ContextVersionMinor 3)
-    -- GLFW.windowHint (GLFW.WindowHint'OpenGLProfile GLFW.OpenGLProfile'Core)
-    -- GLFW.windowHint (GLFW.WindowHint'Resizable False)
+    GLFW.windowHint (GLFW.WindowHint'ContextVersionMajor 4)
+    GLFW.windowHint (GLFW.WindowHint'ContextVersionMinor 5)
+    GLFW.windowHint (GLFW.WindowHint'OpenGLProfile GLFW.OpenGLProfile'Core)
+    GLFW.windowHint (GLFW.WindowHint'Resizable False)
     Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
@@ -102,7 +99,6 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
   GL.clear [ColorBuffer]
   bindVertexArrayObject $= Just triangles
   --drawArrays Triangles firstIndex numVertices
-  --drawArrays TriangleFan firstIndex numVertices
   drawElements Triangles 6 GL.UnsignedInt nullPtr
   GLFW.swapBuffers win
 
@@ -113,57 +109,12 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
 initResources :: [GLfloat] -> [GLuint] -> IO Descriptor
 initResources vs idx =
   do
-          -- setup our verticies
-    let verticies = [
-            0.5,  0.5, 0.0,  -- Top Right
-            0.5, -0.5, 0.0,  -- Bottom Right
-            -0.5, -0.5, 0.0, -- Bottom Left
-            -0.5,  0.5, 0.0  -- Top Left
-            ] :: [GLfloat]
-    let verticesSize = fromIntegral $ sizeOf (0.0 :: GLfloat) * (length verticies)
-    verticesP <- newArray verticies
 
-    -- setup the indexes
-    let indices = [  -- Note that we start from 0!
-            0, 1, 3, -- First Triangle
-            1, 2, 3  -- Second Triangle
-            ] :: [GLuint]
-    let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
-    indicesP <- newArray indices
-
-    -- -- setup a vertex array object
-    -- vaoP <- malloc
-    -- glGenVertexArrays 1 vaoP
-    -- vao <- peek vaoP
-    -- glBindVertexArray vao
-
-    -- -- setup a vertex buffer object and send it data
-    -- vboP <- malloc
-    -- glGenBuffers 1 vboP
-    -- vbo <- peek vboP
-    -- glBindBuffer GL_ARRAY_BUFFER vbo
-    -- glBufferData GL_ARRAY_BUFFER verticesSize (castPtr verticesP) GL_STATIC_DRAW
-
-    -- -- setup an element buffer object and send it data
-    -- eboP <- malloc
-    -- glGenBuffers 1 eboP
-    -- ebo <- peek eboP
-    -- glBindBuffer GL_ELEMENT_ARRAY_BUFFER ebo
-    -- glBufferData GL_ELEMENT_ARRAY_BUFFER indicesSize (castPtr indicesP) GL_STATIC_DRAW
-
-    -- -- assign the attribute pointer information
-    -- let threeFloats = fromIntegral $ sizeOf (0.0::GLfloat) * 3
-    -- glVertexAttribPointer 0 3 GL_FLOAT GL_FALSE threeFloats nullPtr
-    -- glEnableVertexAttribArray 0
-
-    -- -- unbind our vertex array object to prevent accidental changes in
-    -- -- between our draw calls.
-    -- glBindVertexArray 0
-
+    -- | VBO
+    -- || VAO
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    let vs = verticies
     let numVertices = length vs
     vertexBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just vertexBuffer
@@ -171,32 +122,32 @@ initResources vs idx =
         let sizev = fromIntegral (numVertices * sizeOf (head vs))
         bufferData ArrayBuffer $= (sizev, ptr, StaticDraw)
 
-    theVao <- genObjectName
-    bindVertexArrayObject $= Just theVao
-
     let firstIndex = 0
         vPosition = AttribLocation 0
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 3 Float 0 (bufferOffset firstIndex))
     vertexAttribArray vPosition $= Enabled
 
+    -- || EBO
     elementBuffer <- genObjectName
     bindBuffer ElementArrayBuffer $= Just elementBuffer
+    
     let numIndices = length indices
     withArray idx $ \ptr -> do
-        let sizei = fromIntegral (numIndices * sizeOf (head indices))
+        let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
-    
+
+    -- || Shaders
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
 
+    -- || Unload buffers
     bindVertexArrayObject $= Nothing
-    --bindBuffer ElementArrayBuffer $= Nothing
+    bindBuffer ElementArrayBuffer $= Nothing
     
-    return $ Descriptor theVao firstIndex (fromIntegral numIndices)
-    --return $ Descriptor triangles firstIndex (fromIntegral 21)
+    return $ Descriptor triangles firstIndex (fromIntegral numIndices)
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
@@ -204,6 +155,4 @@ bufferOffset = plusPtr nullPtr . fromIntegral
 main :: IO ()
 main =
   do
-     -- let drawable = map toVertex4 $ toPoints $ Square (-0.0, -0.0) 1.0
-     -- display drawable
     display
