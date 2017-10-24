@@ -8,6 +8,7 @@ import Foreign.Marshal.Array (withArray)
 import Foreign.Ptr (plusPtr, nullPtr, Ptr)
 import Foreign.Storable (sizeOf)
 import NGL.LoadShaders
+import Graphics.GLUtil (readTexture, texture2DWrap)
 
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 data Shape = Square    (Float, Float)   Float
@@ -22,6 +23,15 @@ verticies =
    -0.5,  0.5, 0.0   -- Top Left    
   ] 
 
+uv :: [GLfloat]
+uv =
+  [
+    1.0, 1.0,  -- Top Right
+    1.0, 0.0,  -- Bottom Right
+    0.0, 0.0,  -- Bottom Left
+    0.0, 1.0   -- Top Left    
+  ] 
+
 indices :: [GLuint]
 indices =
   [          -- Note that we start from 0!
@@ -29,24 +39,6 @@ indices =
     1, 2, 3  -- Second Triangle
   ]
      
-square :: (Float, Float) -> Float -> [(Float, Float)]
-square pos side = [p1, p2, p3,
-                   p1, p3, p4]
-    where          
-        x = fst pos
-        y = snd pos
-        r = side/2 
-        p1 = (x + r, y + r)
-        p2 = (x - r, y + r)
-        p3 = (x - r, y - r)
-        p4 = (x + r, y - r)
-
-toPoints :: Shape -> [(Float, Float)]
-toPoints (Square pos side)     =  square pos side
-
-toVertex4 :: (Float, Float) -> Vertex2 Float
-toVertex4 (k,l) = Vertex2 k l
-
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
 keyPressed _   _               _ _                     _ = return ()
@@ -106,6 +98,8 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
      GLFW.pollEvents
      onDisplay win descriptor                 
 
+-- | Init Resources
+---------------------------------------------------------------------------
 initResources :: [GLfloat] -> [GLuint] -> IO Descriptor
 initResources vs idx =
   do
@@ -137,6 +131,26 @@ initResources vs idx =
         let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
 
+    -- || UVs
+
+    textureBuffer <- genObjectName
+    bindBuffer ArrayBuffer $= Just textureBuffer
+    withArray uv $ \ptr -> do
+        let size = fromIntegral (numVertices * sizeOf (head uv))
+        bufferData ArrayBuffer $= (size, ptr, StaticDraw)
+    let firstIndex = 0
+        uvCoords = AttribLocation 1
+    vertexAttribPointer uvCoords $=
+        (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
+    vertexAttribArray uvCoords $= Enabled
+
+    -- || Assign Textures
+    let tex = "test.png"
+    tx <- loadTex tex
+    texture Texture2D $= Enabled
+    activeTexture $= TextureUnit 0
+    textureBinding Texture2D $= Just tx    
+
     -- || Shaders
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
@@ -146,11 +160,18 @@ initResources vs idx =
     -- || Unload buffers
     bindVertexArrayObject $= Nothing
     bindBuffer ElementArrayBuffer $= Nothing
-    
+
     return $ Descriptor triangles firstIndex (fromIntegral numIndices)
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
+
+loadTex :: FilePath -> IO TextureObject
+loadTex f = do t <- either error id <$> readTexture f
+               textureFilter Texture2D $= ((Linear', Nothing), Linear')
+               texture2DWrap $= (Repeated, ClampToEdge)
+               return t
+---------------------------------------------------------------------------
 
 main :: IO ()
 main =

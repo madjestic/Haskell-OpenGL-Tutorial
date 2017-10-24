@@ -1,8 +1,16 @@
-#version 330 core
+#version 430 core
 
-layout(location = 0) in vec3 vPos;
+layout(location = 0) in vec4 vPosition;
+layout(location = 1) in vec2 uvCoords;
+
+// Output data ; will be interpolated for each fragment.
+out vec2 uv;
 
 void main()
 {
-  gl_Position = vec4(vPos.x, vPos.y, vPos.z, 1.0);
+   gl_Position = vPosition;
+
+// The color of each vertex will be interpolated
+// to produce the color of each fragment
+	 uv = uvCoords;
 }
