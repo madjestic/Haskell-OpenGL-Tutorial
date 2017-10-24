@@ -5,7 +5,7 @@ import Graphics.UI.GLFW as GLFW
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
 import Foreign.Marshal.Array (withArray)
-import Foreign.Ptr (castPtr, plusPtr, nullPtr, Ptr)
+import Foreign.Ptr (plusPtr, nullPtr, Ptr)
 import Foreign.Storable (sizeOf)
 import NGL.LoadShaders
 import Graphics.GLUtil (readTexture, texture2DWrap)
@@ -14,32 +14,14 @@ data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 data Shape = Square    (Float, Float)   Float
            deriving Show
 
-suka :: [GLfloat]
-suka =
-  [
-    0.5,  0.5, 0.0, 1.0, 1.0,
-    0.5, -0.5, 0.0, 1.0, 0.0,
-   -0.5, -0.5, 0.0, 0.0, 0.0,
-   -0.5,  0.5, 0.0, 0.0, 1.0
-  ]
-
 verticies :: [GLfloat]
 verticies =
-  [
-    0.5,  0.5, 0.0,  -- Top Right
-    0.5, -0.5, 0.0,  -- Bottom Right
-   -0.5, -0.5, 0.0,  -- Bottom Left
-   -0.5,  0.5, 0.0   -- Top Left    
-  ] 
-
-uv :: [GLfloat]
-uv =
-  [
-    1.0, 1.0,  -- Top Right
-    1.0, 0.0,  -- Bottom Right
-    0.0, 0.0,  -- Bottom Left
-    0.0, 1.0   -- Top Left    
-  ] 
+  [ -- | positions   -- | uv
+    0.5,  0.5, 0.0,  1.0, 1.0,
+    0.5, -0.5, 0.0,  1.0, 0.0,
+   -0.5, -0.5, 0.0,  0.0, 0.0,
+   -0.5,  0.5, 0.0,  0.0, 1.0
+  ]
 
 indices :: [GLuint]
 indices =
@@ -95,7 +77,7 @@ display = do
      closeWindow inWindow
                  
 onDisplay :: GLFW.Window -> Descriptor -> IO ()
-onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
+onDisplay win descriptor@(Descriptor triangles posOffset numVertices) = do
   GL.clearColor $= Color4 0 0 0 1
   GL.clear [ColorBuffer]
   bindVertexArrayObject $= Just triangles
@@ -112,65 +94,59 @@ initResources :: [GLfloat] -> [GLuint] -> IO Descriptor
 initResources vs idx =
   do
 
-    -- | VBO
-    -- || VAO
+    -- | VAO
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    let numVertices = length suka
-
-    -- ||| Generate a VBO
+    -- | VBO
     vertexBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just vertexBuffer
-
-    -- || EBO
-    elementBuffer <- genObjectName
-    bindBuffer ElementArrayBuffer $= Just elementBuffer
-    
-    withArray suka $ \ptr -> do
-        let sizev = fromIntegral (numVertices * sizeOf (head suka))
+    let numVertices = length verticies
+    withArray verticies $ \ptr -> do
+        let sizev = fromIntegral (numVertices * sizeOf (head verticies))
         bufferData ArrayBuffer $= (sizev, ptr, StaticDraw)
 
+    -- | EBO
+    elementBuffer <- genObjectName
+    bindBuffer ElementArrayBuffer $= Just elementBuffer
     let numIndices = length indices
     withArray idx $ \ptr -> do
-        let indicesSize = fromIntegral $ sizeOf (0 :: GLuint) * (length indices)
+        let indicesSize = fromIntegral (numIndices * (length indices))
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
 
-    -- || Asign values (vertex positions) to the part of VBO
-    -- assign the attribute pointer information
-    let floatSize = (fromIntegral $ sizeOf (0.0::GLfloat)) :: GLsizei
-    let firstIndex = 0
-        vPosition = AttribLocation 0
+    let floatSize  = (fromIntegral $ sizeOf (0.0::GLfloat)) :: GLsizei
+        posOffset  = 0 * floatSize
+        uvOffset   = 3 * floatSize
+        stride     = 5 * floatSize
+        
+    let vPosition  = AttribLocation 0
     vertexAttribPointer vPosition $=
-        (ToFloat, VertexArrayDescriptor 3 Float (5*floatSize) (nullPtr))
-    vertexAttribArray vPosition $= Enabled
+        (ToFloat, VertexArrayDescriptor 3 Float stride (bufferOffset posOffset))
+    vertexAttribArray vPosition   $= Enabled
 
-    -- || Write the uv data into the same VBO with the stride (offset)
-    let threeFloatOffset = castPtr $ plusPtr nullPtr (fromIntegral $ 3*floatSize)
-        uvCoords = AttribLocation 1
-    vertexAttribPointer uvCoords $=
-        (ToFloat, VertexArrayDescriptor 2 Float (5*floatSize) (threeFloatOffset))
-    vertexAttribArray uvCoords $= Enabled
+    let uvCoords   = AttribLocation 1
+    vertexAttribPointer uvCoords  $=
+        (ToFloat, VertexArrayDescriptor 2 Float stride (bufferOffset uvOffset))
+    vertexAttribArray uvCoords    $= Enabled
 
-    -- || Assign Textures
-    -- let tex = "test.png"
+    -- | Assign Textures
     let tex = "Resources/Textures/container.jpg"
     tx <- loadTex tex
-    texture Texture2D $= Enabled
-    activeTexture $= TextureUnit 0
+    texture Texture2D        $= Enabled
+    activeTexture            $= TextureUnit 0
     textureBinding Texture2D $= Just tx    
 
     -- || Shaders
     program <- loadShaders [
-        ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
+        ShaderInfo VertexShader   (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
 
     -- || Unload buffers
-    bindVertexArrayObject $= Nothing
-    bindBuffer ElementArrayBuffer $= Nothing
+    bindVertexArrayObject         $= Nothing
+    -- bindBuffer ElementArrayBuffer $= Nothing
 
-    return $ Descriptor triangles firstIndex (fromIntegral numIndices)
+    return $ Descriptor triangles posOffset (fromIntegral numIndices)
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
