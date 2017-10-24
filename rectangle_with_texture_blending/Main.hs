@@ -35,22 +35,24 @@ keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
 keyPressed _   _               _ _                     _ = return ()
                                                                   
 shutdown :: GLFW.WindowCloseCallback
-shutdown win = do
-  GLFW.destroyWindow win
-  GLFW.terminate
-  _ <- exitSuccess
-  return ()                                                                  
-   
+shutdown win =
+  do
+    GLFW.destroyWindow win
+    GLFW.terminate
+    _ <- exitSuccess
+    return ()                                                                  
+     
 resizeWindow :: GLFW.WindowSizeCallback
 resizeWindow _ w h =
-    do
-      GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
-      GL.matrixMode $= GL.Projection
-      GL.loadIdentity
-      GL.ortho2D 0 (realToFrac w) (realToFrac h) 0   
+  do
+    GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
+    GL.matrixMode $= GL.Projection
+    GL.loadIdentity
+    GL.ortho2D 0 (realToFrac w) (realToFrac h) 0   
 
 openWindow :: String -> (Int, Int) -> IO GLFW.Window
-openWindow title (sizex,sizey) = do
+openWindow title (sizex,sizey) =
+  do
     GLFW.init
     GLFW.defaultWindowHints
     GLFW.windowHint (GLFW.WindowHint'ContextVersionMajor 4)
@@ -65,35 +67,37 @@ openWindow title (sizex,sizey) = do
     return win
 
 closeWindow :: GLFW.Window -> IO ()
-closeWindow win = do
+closeWindow win =
+  do
     GLFW.destroyWindow win
     GLFW.terminate
 
 display :: IO ()
-display = do
-     inWindow <- openWindow "NGL is Not GLoss" (512,512)
-     descriptor <- initResources verticies indices
-     onDisplay inWindow descriptor
-     closeWindow inWindow
+display =
+  do
+    inWindow <- openWindow "NGL is Not GLoss" (512,512)
+    descriptor <- initResources verticies indices
+    onDisplay inWindow descriptor
+    closeWindow inWindow
                  
 onDisplay :: GLFW.Window -> Descriptor -> IO ()
-onDisplay win descriptor@(Descriptor triangles posOffset numVertices) = do
-  GL.clearColor $= Color4 0 0 0 1
-  GL.clear [ColorBuffer]
-  bindVertexArrayObject $= Just triangles
-  drawElements Triangles 6 GL.UnsignedInt nullPtr
-  GLFW.swapBuffers win
-
-  forever $ do
-     GLFW.pollEvents
-     onDisplay win descriptor                 
+onDisplay win descriptor@(Descriptor triangles posOffset numVertices) =
+  do
+    GL.clearColor $= Color4 0 0 0 1
+    GL.clear [ColorBuffer]
+    bindVertexArrayObject $= Just triangles
+    drawElements Triangles 6 GL.UnsignedInt nullPtr
+    GLFW.swapBuffers win
+   
+    forever $ do
+       GLFW.pollEvents
+       onDisplay win descriptor                 
 
 -- | Init Resources
 ---------------------------------------------------------------------------
 initResources :: [GLfloat] -> [GLuint] -> IO Descriptor
 initResources vs idx =
   do
-
     -- | VAO
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
@@ -152,10 +156,12 @@ bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
 
 loadTex :: FilePath -> IO TextureObject
-loadTex f = do t <- either error id <$> readTexture f
-               textureFilter Texture2D $= ((Linear', Nothing), Linear')
-               texture2DWrap $= (Repeated, ClampToEdge)
-               return t
+loadTex f =
+  do
+    t <- either error id <$> readTexture f
+    textureFilter Texture2D $= ((Linear', Nothing), Linear')
+    texture2DWrap $= (Repeated, ClampToEdge)
+    return t
 ---------------------------------------------------------------------------
 
 main :: IO ()
