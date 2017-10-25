@@ -10,6 +10,8 @@ out vec4 fColor;
 
 void main()
 {
-  fColor = vec4(texture(tex_01, uv).rgb, 1.0);
+  fColor = vec4((texture(tex_00, uv).rgb) * 0.5 +
+                (texture(tex_01, uv).rgb) * 0.5,
+                1.0);
   //fColor = vec4(uv, 1.0, 1.0);
 }

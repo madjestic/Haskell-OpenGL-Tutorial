@@ -138,16 +138,14 @@ initResources vs idx =
     -- | Assign Textures
     activeTexture            $= TextureUnit 0
     let tex_00 = "Resources/Textures/container.jpg"
-    tx_00 <- loadTex tex_00
+    tx0 <- loadTex tex_00
     texture Texture2D        $= Enabled
-    textureBinding Texture2D $= Just tx_00
-    
-    -- textureBinding Texture2D $= Nothing
+    textureBinding Texture2D $= Just tx0
     
     activeTexture            $= TextureUnit 1
     let tex_01 = "Resources/Textures/awesomeface.png"
-    tx_01 <- loadTex tex_01
-    textureBinding Texture2D $= Just tx_01
+    tx1 <- loadTex tex_01
+    textureBinding Texture2D $= Just tx1
     texture Texture2D        $= Enabled
     
     -- || Shaders
