@@ -16,11 +16,11 @@ data Shape = Square    (Float, Float)   Float
 
 verticies :: [GLfloat]
 verticies =
-  [ -- | positions   -- | uv
-    0.5,  0.5, 0.0,  1.0, 1.0,
-    0.5, -0.5, 0.0,  1.0, 0.0,
-   -0.5, -0.5, 0.0,  0.0, 0.0,
-   -0.5,  0.5, 0.0,  0.0, 1.0
+  [ -- | positions    -- | colors      -- | uv
+    0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0,
+    0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0,
+   -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0,
+   -0.5,  0.5, 0.0,   0.0, 0.0, 0.0,   0.0, 1.0
   ]
 
 indices :: [GLuint]
@@ -120,20 +120,32 @@ initResources vs idx =
         let indicesSize = fromIntegral (numIndices * (length indices))
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
 
+
+    -- | Bind the pointer to the vertex attribute data
     let floatSize  = (fromIntegral $ sizeOf (0.0::GLfloat)) :: GLsizei
-        posOffset  = 0 * floatSize
-        uvOffset   = 3 * floatSize
-        stride     = 5 * floatSize
-        
+        stride     = 8 * floatSize
+
+    -- | Positions
     let vPosition  = AttribLocation 0
+        posOffset  = 0 * floatSize
     vertexAttribPointer vPosition $=
         (ToFloat, VertexArrayDescriptor 3 Float stride (bufferOffset posOffset))
     vertexAttribArray vPosition   $= Enabled
 
-    let uvCoords   = AttribLocation 1
+    -- | Colors
+    let vColor  = AttribLocation 1
+        clrOffset  = 3 * floatSize
+    vertexAttribPointer vColor $=
+        (ToFloat, VertexArrayDescriptor 3 Float stride (bufferOffset clrOffset))
+    vertexAttribArray vColor   $= Enabled
+
+    -- | UV
+    let uvCoords   = AttribLocation 2
+        uvOffset   = 6 * floatSize
     vertexAttribPointer uvCoords  $=
         (ToFloat, VertexArrayDescriptor 2 Float stride (bufferOffset uvOffset))
     vertexAttribArray uvCoords    $= Enabled
+
 
     -- | Assign Textures
     activeTexture            $= TextureUnit 0
