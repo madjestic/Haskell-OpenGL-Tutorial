@@ -106,7 +106,8 @@ initResources vs idx =
     vertexBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just vertexBuffer
     let numVertices = length verticies
-    withArray verticies $ \ptr -> do
+    withArray verticies $ \ptr ->
+      do
         let sizev = fromIntegral (numVertices * sizeOf (head verticies))
         bufferData ArrayBuffer $= (sizev, ptr, StaticDraw)
 
@@ -114,7 +115,8 @@ initResources vs idx =
     elementBuffer <- genObjectName
     bindBuffer ElementArrayBuffer $= Just elementBuffer
     let numIndices = length indices
-    withArray idx $ \ptr -> do
+    withArray idx $ \ptr ->
+      do
         let indicesSize = fromIntegral (numIndices * (length indices))
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
 
@@ -134,17 +136,31 @@ initResources vs idx =
     vertexAttribArray uvCoords    $= Enabled
 
     -- | Assign Textures
-    let tex = "Resources/Textures/container.jpg"
-    tx <- loadTex tex
-    texture Texture2D        $= Enabled
     activeTexture            $= TextureUnit 0
-    textureBinding Texture2D $= Just tx    
-
+    let tex_00 = "Resources/Textures/container.jpg"
+    tx_00 <- loadTex tex_00
+    texture Texture2D        $= Enabled
+    textureBinding Texture2D $= Just tx_00
+    
+    -- textureBinding Texture2D $= Nothing
+    
+    activeTexture            $= TextureUnit 1
+    let tex_01 = "Resources/Textures/awesomeface.png"
+    tx_01 <- loadTex tex_01
+    textureBinding Texture2D $= Just tx_01
+    texture Texture2D        $= Enabled
+    
     -- || Shaders
     program <- loadShaders [
         ShaderInfo VertexShader   (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
+
+    -- Set Uniforms
+    location0 <- get (uniformLocation program "tex_00")
+    uniform location0 $= (TextureUnit 0)
+    location1 <- get (uniformLocation program "tex_01")
+    uniform location1 $= (TextureUnit 1)
 
     -- || Unload buffers
     bindVertexArrayObject         $= Nothing
