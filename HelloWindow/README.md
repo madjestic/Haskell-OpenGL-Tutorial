@@ -14,4 +14,5 @@ A Hello Window [OpenGL](https://github.com/haskell-opengl) application with [sta
   
 ```
 
+## Output:
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/HelloWindow/output.png)
