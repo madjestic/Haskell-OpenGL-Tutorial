@@ -4,13 +4,6 @@ import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
-import Foreign.Marshal.Array (withArray)
-import Foreign.Ptr (plusPtr, nullPtr, Ptr)
-import Foreign.Storable (sizeOf)
-import Text.Printf
-
-data Descriptor =
-     Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 
 keyPressed :: GLFW.KeyCallback 
 keyPressed win GLFW.Key'Escape _ GLFW.KeyState'Pressed _ = shutdown win
