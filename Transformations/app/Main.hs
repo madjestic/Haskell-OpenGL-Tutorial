@@ -173,21 +173,21 @@ initResources vs idx =
 
     -- | Assign Textures
     activeTexture            $= TextureUnit 0
-    let tex_00 = "resources/textures/container.jpg"
+    let tex_00 = "Resources/Textures/container.jpg"
     tx0 <- loadTex tex_00
     texture Texture2D        $= Enabled
     textureBinding Texture2D $= Just tx0
     
     activeTexture            $= TextureUnit 1
-    let tex_01 = "resources/textures/awesomeface.png"
+    let tex_01 = "Resources/Textures/awesomeface.png"
     tx1 <- loadTex tex_01
     textureBinding Texture2D $= Just tx1
     texture Texture2D        $= Enabled
     
     -- || Shaders
     program <- loadShaders [
-        ShaderInfo VertexShader   (FileSource "shaders/shader.vert"),
-        ShaderInfo FragmentShader (FileSource "shaders/shader.frag")]
+        ShaderInfo VertexShader   (FileSource "Shaders/shader.vert"),
+        ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
 
     -- Set Uniforms
