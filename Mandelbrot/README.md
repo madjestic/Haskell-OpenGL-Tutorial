@@ -1,6 +1,6 @@
 # Mandelbrot
 
-A simple OpenGL application, drawing a Mandebrot fractal.  [OpenGL](https://github.com/haskell-opengl) application with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
+A simple [OpenGL](https://github.com/haskell-opengl) application, drawing a Mandebrot fractal, using [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
 
 ## Prerequisits:
    Hardware, supporting OpenGL >= 4.5 (because that's what my hardware is).

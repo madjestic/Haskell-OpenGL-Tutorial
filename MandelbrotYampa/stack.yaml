@@ -2,9 +2,13 @@ flags: {}
 packages:
 - .
 extra-deps:
-- GLFW-b-1.4.8.1
-- OpenGL-3.0.2.0
-- GLUtil-0.9.2
 - bytestring-0.10.8.1
+- GLFW-b-1.4.8.1
+- GLUtil-0.9.2
 - GLUT-2.7.0.12
+- linear-1.20.7
+- OpenGL-3.0.2.0
+- sdl2-2.3.0
+- text-1.2.2.2
+- Yampa-0.10.6
 resolver: lts-9.13
