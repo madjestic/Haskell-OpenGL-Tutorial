@@ -26,3 +26,6 @@ Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://g
 
 ## Output:
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.png)
+
+## Animated Output:
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)

@@ -13,16 +13,16 @@ import Graphics.Rendering.OpenGL as GL hiding (Size)
 import LoadShaders
 import Text.Printf
 
-import SDL                             hiding (Point, Event)
+import SDL                             hiding (Point, Event, Timer)
 
 import Input
 import Types
 
 -- < Game Types > --------------------------------------------------------------
-data Game       = Game { clipPos :: Double  }
+data Game       = Game { timer :: Timer  }
                 deriving Show
 
-type Clip       = Double
+type Timer       = Double
 
 -- < Rendering > ----------------------------------------------------------
 openWindow :: Text -> (CInt, CInt) -> IO SDL.Window
@@ -245,8 +245,8 @@ release =
     unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
     returnA  -< unTap
 
-initClip :: Double
-initClip = 0
+initTimer :: Timer
+initTimer = 0
 
 exitTrigger :: SF AppInput (Event ())
 exitTrigger =
@@ -257,7 +257,7 @@ exitTrigger =
 -- < Game Logic > ---------------------------------------------------------
 gameSession :: SF AppInput Game
 gameSession = proc input -> do
-     timer <- stateReleased initClip -< input
+     timer <- stateReleased initTimer -< input
      returnA -< Game timer
 
 game :: SF AppInput Game
@@ -267,8 +267,8 @@ game = switch sf (\_ -> game)
                      gameOver  <- exitTrigger -< input
                      returnA   -< (gameState, gameOver)
 
-render :: Game -> Clip
-render (Game clipPos) = clipPos
+render :: Game -> Timer
+render (Game timer) = timer
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
