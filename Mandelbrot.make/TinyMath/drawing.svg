@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="New document 1">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient5213"
+       osb:paint="solid">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop5215" />
+    </linearGradient>
+    <filter
+       inkscape:collect="always"
+       id="filter5283"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.249351"
+         id="feGaussianBlur5285" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.3574219"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer2"
+     showgrid="false"
+     inkscape:window-width="1600"
+     inkscape:window-height="880"
+     inkscape:window-x="-2"
+     inkscape:window-y="-3"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-540.36218)">
+    <path
+       sodipodi:type="spiral"
+       style="fill:#ffffff;fill-opacity:1;stroke:#ff8e14;stroke-width:26.60000038;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:8;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter5283)"
+       id="path2989"
+       sodipodi:cx="221.42857"
+       sodipodi:cy="280.93362"
+       sodipodi:expansion="1"
+       sodipodi:revolution="3"
+       sodipodi:radius="134.65755"
+       sodipodi:argument="-18.131723"
+       sodipodi:t0="0"
+       d="m 221.42857,280.93362 c 5.08547,4.44084 -3.47716,9.04606 -7.38095,8.45238 -10.57904,-1.60883 -13.15788,-14.8453 -9.5238,-23.21429 6.50051,-14.97016 25.80789,-17.97888 39.04763,-10.59522 19.42983,10.83582 22.93055,36.91479 11.66663,54.88096 -15.01303,23.94609 -48.07232,27.93718 -70.71429,12.73806 -28.49261,-19.12653 -32.97206,-59.25386 -13.80948,-86.54763 23.20845,-33.05641 70.44888,-38.02329 102.38096,-14.8809 37.63086,27.27251 43.08478,81.65231 15.95232,118.2143 -31.32549,42.21227 -92.86134,48.15311 -134.04763,17.02374 -46.79849,-35.37116 -53.22622,-104.07432 -18.09516,-149.88097 39.41174,-51.38814 115.29017,-58.30281 165.7143,-19.16658 55.98035,43.44864 63.38201,126.50819 20.238,181.54764"
+       transform="translate(34.758893,507.87421)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer"
+     transform="translate(0,-540.36218)">
+    <text
+       xml:space="preserve"
+       style="font-size:67.20132446px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="177.98531"
+       y="589.91547"
+       id="text2985"
+       sodipodi:linespacing="125%"
+       transform="scale(0.71085174,1.4067631)"><tspan
+         sodipodi:role="line"
+         id="tspan2987"
+         x="177.98531"
+         y="589.91547"
+         style="font-size:67.20132446px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Sans;-inkscape-font-specification:Sans Bold">SOON (tm)</tspan></text>
+  </g>
+</svg>
