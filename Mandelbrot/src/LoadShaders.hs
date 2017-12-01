@@ -1,4 +1,4 @@
-module NGL.LoadShaders (
+module LoadShaders (
    ShaderSource(..), ShaderInfo(..), loadShaders
 ) where
 

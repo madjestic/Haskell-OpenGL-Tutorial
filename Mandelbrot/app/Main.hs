@@ -8,21 +8,21 @@ module Main where
 
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
-import Graphics.GLUtil (readTexture, texture2DWrap, setUniform)
-import Graphics.UI.GLUT.Debugging
+import Graphics.GLUtil (setUniform)
+import Graphics.UI.GLUT.Debugging (reportErrors)
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
 import Foreign.Marshal.Array (withArray)
 import Foreign.Ptr (plusPtr, nullPtr, Ptr)
 import Foreign.Storable (sizeOf)
-import NGL.LoadShaders
+import LoadShaders
 data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
 data Projection = Planar                
                 deriving Show 
 data Shape = Square    Point   Side
            deriving Show     
      
-type Drawable   = ([Vertex4 Float],[TexCoord2 Float],String)
+type Drawable   = ([Vertex4 Float],[TexCoord2 Float])
 type UV         = [TexCoord2 Float] 
 type Point      = (Float, Float)
 type Points     = [Point]     
@@ -49,12 +49,11 @@ toUV Planar = projectPlanar ps
                              ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)]::Points
                                                                    
 toDrawable :: Shape -> Drawable
-toDrawable x = (vs, uv, tex)
+toDrawable x = (vs, uv)
            where
                vs'   = toPoints x               
                uv    = map toTexCoord2 vs'
                vs    = map toVertex4 vs'
-               tex   = "test.png"                                                                   
 
 toVertex4 :: Point -> Vertex4 Float
 toVertex4 (k, l) = Vertex4 k l 0 1
@@ -88,6 +87,10 @@ openWindow :: String -> (Int, Int) -> IO GLFW.Window
 openWindow title (sizex,sizey) = do
     GLFW.init
     GLFW.defaultWindowHints
+    GLFW.windowHint (GLFW.WindowHint'ContextVersionMajor 4)
+    GLFW.windowHint (GLFW.WindowHint'ContextVersionMinor 5)
+    GLFW.windowHint (GLFW.WindowHint'OpenGLProfile GLFW.OpenGLProfile'Core)
+    GLFW.windowHint (GLFW.WindowHint'Resizable False)
     Just win <- GLFW.createWindow sizex sizey title Nothing Nothing
     GLFW.makeContextCurrent (Just win)
     GLFW.setWindowSizeCallback win (Just resizeWindow)
@@ -111,8 +114,8 @@ draw win xs = do
     descriptor <- initResources xs
     onDisplay win descriptor                 
     
-initResources :: ([Vertex4 Float],[TexCoord2 Float],String) -> IO Descriptor
-initResources (vs, uv, tex) = do
+initResources :: (Drawable) -> IO Descriptor
+initResources (vs, uv) = do
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
@@ -151,13 +154,6 @@ initResources (vs, uv, tex) = do
         (ToFloat, VertexArrayDescriptor 2 Float 0 (bufferOffset firstIndex))
     vertexAttribArray uvCoords $= Enabled
   
-
-
-    tx <- loadTex tex
-    texture Texture2D $= Enabled
-    activeTexture $= TextureUnit 0
-    textureBinding Texture2D $= Just tx    
-
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
@@ -188,12 +184,6 @@ onDisplay win descriptor@(Descriptor triangles firstIndex numVertices) = do
                
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
-
-loadTex :: FilePath -> IO TextureObject
-loadTex f = do t <- either error id <$> readTexture f
-               textureFilter Texture2D $= ((Linear', Nothing), Linear')
-               texture2DWrap $= (Repeated, ClampToEdge)
-               return t                   
 
 main :: IO ()
 main = do
