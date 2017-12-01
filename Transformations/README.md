@@ -1,5 +1,3 @@
-# Shit is broken: the project builds, but resources do not get linked (apparenty files aren't where the linker thinks they should be).
-
 # Transformations
 
 A simple OpenGL application, drawing a rectangle with texture blending, using element buffer.  [OpenGL](https://github.com/haskell-opengl) application with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
@@ -12,10 +10,11 @@ A simple OpenGL application, drawing a rectangle with texture blending, using el
 ## In order to run:
 ```
   stack build
-  stack exec HelloWindow
+  stack exec Transformations
+  # or, in case you are running a hybrid graphics like myself, use a launch script, e.g.:
+  gpu ./run.sh
   
 ```
 
 ## Output:
-![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/HelloWindow/output.png)
-
+![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Transformations/output.png)
