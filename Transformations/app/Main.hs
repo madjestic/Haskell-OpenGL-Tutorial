@@ -12,10 +12,7 @@ import Graphics.GLUtil (readTexture, texture2DWrap)
 import Text.Printf
 
 data Descriptor =
-     Descriptor VertexArrayObject ArrayIndex NumArrayIndices
-data Shape =
-  Square    (Float, Float)   Float
-           deriving Show
+     Descriptor VertexArrayObject NumArrayIndices
 
 data GLMatrix a =
      GLMatrix !a !a !a !a
@@ -105,12 +102,12 @@ display =
     closeWindow inWindow
                  
 onDisplay :: GLFW.Window -> Descriptor -> IO ()
-onDisplay win descriptor@(Descriptor triangles posOffset numVertices) =
+onDisplay win descriptor@(Descriptor triangles numIndices) =
   do
     GL.clearColor $= Color4 0 0 0 1
     GL.clear [ColorBuffer]
     bindVertexArrayObject $= Just triangles
-    drawElements Triangles 6 GL.UnsignedInt nullPtr
+    drawElements Triangles numIndices GL.UnsignedInt nullPtr
     GLFW.swapBuffers win
    
     forever $ do
@@ -143,7 +140,6 @@ initResources vs idx =
       do
         let indicesSize = fromIntegral (numIndices * (length indices))
         bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
-
 
     -- | Bind the pointer to the vertex attribute data
     let floatSize  = (fromIntegral $ sizeOf (0.0::GLfloat)) :: GLsizei
@@ -211,7 +207,7 @@ initResources vs idx =
     bindVertexArrayObject         $= Nothing
     -- bindBuffer ElementArrayBuffer $= Nothing
 
-    return $ Descriptor triangles posOffset (fromIntegral numIndices)
+    return $ Descriptor triangles (fromIntegral numIndices)
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
