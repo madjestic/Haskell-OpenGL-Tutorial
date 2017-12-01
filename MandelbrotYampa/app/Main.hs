@@ -11,6 +11,7 @@ import Foreign.Storable                       (sizeOf)
 import FRP.Yampa
 import Graphics.Rendering.OpenGL as GL hiding (Size)
 import LoadShaders
+import Text.Printf
 
 import SDL                             hiding (Point, Event)
 
@@ -22,52 +23,6 @@ data Game       = Game { clipPos :: Double  }
                 deriving Show
 
 type Clip       = Double
-
--- < NGL (NGL is not a Graphics Library) > --------------------------------
-data Projection = Planar                
-                deriving Show 
-data Shape      = Square Point   Size
-                deriving Show
-
-type Drawable   = [Vertex4 Double]
-type UV         = [TexCoord2 Double] 
-type Point      = (Double, Double)
-type Points     = [Point]     
-type Size       = Double
-
-
-square :: Point -> Double -> [Point]
-square pos side = [p1, p2, p3,
-                   p1, p3, p4]
-    where          
-        x = fst pos
-        y = snd pos
-        r = side/2 
-        p1 = (x + r, y + r)
-        p2 = (x - r, y + r)
-        p3 = (x - r, y - r)
-        p4 = (x + r, y - r)
-
-toPoints :: Shape -> [Point]
-toPoints (Square pos side) =  square pos side
-
-toUV :: Projection -> UV
-toUV Planar =
-  projectPlanar ps
-                  where ps = [(1.0, 1.0),( 0.0, 1.0),( 0.0, 0.0)
-                             ,(1.0, 1.0),( 0.0, 0.0),( 1.0, 0.0)] :: Points
-
-toDrawable :: Shape -> Drawable
-toDrawable x = map toVertex4 $ toPoints x
-
-toVertex4 :: Point -> Vertex4 Double
-toVertex4 (k, l)   = Vertex4 k l 0 1
-
-toTexCoord2 :: (a, a) -> TexCoord2 a
-toTexCoord2 (k, l) = TexCoord2 k l
-
-projectPlanar :: [Point] -> UV
-projectPlanar      = map $ uncurry TexCoord2                                                                   
 
 -- < Rendering > ----------------------------------------------------------
 openWindow :: Text -> (CInt, CInt) -> IO SDL.Window
@@ -92,59 +47,105 @@ closeWindow window = do
     SDL.destroyWindow window
     SDL.quit
 
-draw :: SDL.Window -> Drawable -> Double -> IO ()
-draw window drawable timer = do
-      (Descriptor triangles firstIndex numVertices) <- initResources drawable timer
+draw :: SDL.Window -> Double -> IO ()
+draw window timer = do
+      -- (Descriptor triangles firstIndex numVertices) <- initResources drawable timer
+      (Descriptor triangles numIndices) <- initResources verticies indices timer
 
       GL.clearColor $= Color4 0 0 0 1
       GL.clear [ColorBuffer]
       bindVertexArrayObject $= Just triangles
-      drawArrays Triangles firstIndex numVertices
+      drawElements Triangles numIndices GL.UnsignedInt nullPtr
 
       SDL.glSwapWindow window
 
 -- < OpenGL > -------------------------------------------------------------
-data Descriptor = Descriptor VertexArrayObject ArrayIndex NumArrayIndices
+data Descriptor =
+     Descriptor VertexArrayObject NumArrayIndices
 
-initResources :: ([Vertex4 Double]) -> Double -> IO Descriptor
-initResources (vs) timer = do
+data GLMatrix a =
+     GLMatrix !a !a !a !a
+              !a !a !a !a
+              !a !a !a !a
+              !a !a !a !a
+                deriving Eq
+
+instance PrintfArg a => Show (GLMatrix a) where
+  show (GLMatrix m11 m12 m13 m14
+                 m21 m22 m23 m24
+                 m31 m32 m33 m34
+                 m41 m42 m43 m44) =
+    let matrix = "[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n"
+    in printf matrix m11 m12 m13 m14
+                     m21 m22 m23 m24
+                     m31 m32 m33 m34
+                     m41 m42 m43 m44
+
+verticies :: [GLfloat]
+verticies =
+  [ -- | positions    -- | colors      -- | uv
+    1.0,  1.0, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0,
+    1.0, -1.0, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0,
+   -1.0, -1.0, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0,
+   -1.0,  1.0, 0.0,   0.0, 0.0, 0.0,   0.0, 1.0
+  ]
+
+indices :: [GLuint]
+indices =
+  [          -- Note that we start from 0!
+    0, 1, 3, -- First Triangle
+    1, 2, 3  -- Second Triangle
+  ]
+
+-- initResources :: ([Vertex4 Double]) -> Double -> IO Descriptor
+-- initResources (vs) timer =
+initResources :: [GLfloat] -> [GLuint] -> Double -> IO Descriptor
+initResources vs idx timer =  
+  do
+    -- | VAO
     triangles <- genObjectName
     bindVertexArrayObject $= Just triangles
 
-    --
-    -- Declaring VBO: vertices
-    --
-    let vertices = vs
-        numVertices = length vertices
-
+    -- | VBO
     vertexBuffer <- genObjectName
     bindBuffer ArrayBuffer $= Just vertexBuffer
-    withArray vs $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head vs))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)
+    let numVertices = length verticies
+    withArray verticies $ \ptr ->
+      do
+        let sizev = fromIntegral (numVertices * sizeOf (head verticies))
+        bufferData ArrayBuffer $= (sizev, ptr, StaticDraw)
 
-    let firstIndex = 0
-        vPosition = AttribLocation 0
+    -- | EBO
+    elementBuffer <- genObjectName
+    bindBuffer ElementArrayBuffer $= Just elementBuffer
+    let numIndices = length indices
+    withArray idx $ \ptr ->
+      do
+        let indicesSize = fromIntegral (numIndices * (length indices))
+        bufferData ElementArrayBuffer $= (indicesSize, ptr, StaticDraw)
+        
+    -- | Bind the pointer to the vertex attribute data
+    let floatSize  = (fromIntegral $ sizeOf (0.0::GLfloat)) :: GLsizei
+        stride     = 8 * floatSize
+
+    -- | Positions
+    let vPosition  = AttribLocation 0
+        posOffset  = 0 * floatSize
     vertexAttribPointer vPosition $=
-        (ToFloat, VertexArrayDescriptor 4 GL.Double 0 (bufferOffset firstIndex))
-    vertexAttribArray vPosition $= Enabled
+        (ToFloat, VertexArrayDescriptor 3 Float stride (bufferOffset posOffset))
+    vertexAttribArray vPosition   $= Enabled
 
-    --
-    -- Declaring VBO: UVs
-    --
-    let uv = toUV Planar
+    -- | UV
+    let uvCoords   = AttribLocation 1
+        uvOffset   = 6 * floatSize
+    vertexAttribPointer uvCoords  $=
+        (ToFloat, VertexArrayDescriptor 2 Float stride (bufferOffset uvOffset))
+    vertexAttribArray uvCoords    $= Enabled
 
-    textureBuffer <- genObjectName
-    bindBuffer ArrayBuffer $= Just textureBuffer
-    withArray uv $ \ptr -> do
-        let size = fromIntegral (numVertices * sizeOf (head uv))
-        bufferData ArrayBuffer $= (size, ptr, StaticDraw)
-
-    let uvCoords = AttribLocation 1
-    vertexAttribPointer uvCoords $=
-        (ToFloat, VertexArrayDescriptor 2 GL.Double 0 (bufferOffset firstIndex))
-    vertexAttribArray uvCoords   $= Enabled
-
+    -- || Shaders
     program <- loadShaders [
         ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
@@ -154,12 +155,30 @@ initResources (vs) timer = do
     location <- get (uniformLocation program "fTime")
     uniform location $= (realToFrac timer :: GLfloat)
 
-    return $ Descriptor triangles firstIndex (fromIntegral numVertices)    
+    -- Set Transform Matrix
+    let tr =
+          [ 1, 0, 0, 0
+          , 0, 1, 0, 0
+          , 0, 0, 1, 0
+          , 0, 0, 0, 1 ] :: [GLfloat]
+          
+    transform <- GL.newMatrix ColumnMajor tr :: IO (GLmatrix GLfloat)
+    location2 <- get (uniformLocation program "transform")
+    uniform location2 $= (transform)
+    
+
+    -- || Unload buffers
+    bindVertexArrayObject         $= Nothing
+    -- bindBuffer ElementArrayBuffer $= Nothing
+
+    -- return $ Descriptor triangles posOffset (fromIntegral numIndices)
+    return $ Descriptor triangles (fromIntegral numIndices)
+    
 
 bufferOffset :: Integral a => a -> Ptr b
 bufferOffset = plusPtr nullPtr . fromIntegral
 
--- < Animate > ------------------------------------------------------------
+ -- < Animate > ------------------------------------------------------------
 
 type WinOutput = (Double, Bool)
 
@@ -172,17 +191,18 @@ animate title winWidth winHeight sf = do
     window <- openWindow title (winWidth, winHeight)
 
     lastInteraction <- newMVar =<< SDL.time   
-      
+    -- Input Logic -----------------------------------------------------
     let senseInput _ = do
             currentTime <- SDL.time                          
             dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
             mEvent <- SDL.pollEvent                          
             return (dt, Event . SDL.eventPayload <$> mEvent) 
-
+    -- Output Logic -----------------------------------------------------
         renderOutput _ (timer, shouldExit) = do
-            draw window ( toDrawable (Square (0.0, 0.0) 1.0)) timer
+            draw window timer
             return shouldExit 
 
+    -- Reactimate -----------------------------------------------------
     reactimate (return NoEvent)
                senseInput
                renderOutput

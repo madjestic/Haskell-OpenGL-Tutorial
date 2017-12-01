@@ -17,9 +17,9 @@
 //
 // More info here: http://www.iquilezles.org/www/articles/distancefractals/distancefractals.htm
 
-in  vec2 fragCoord;
+in  vec2 uv;
 // in  float time;
-out vec4 fragColor;
+out vec4 fColor;
 
 uniform float fTime;
 
@@ -27,7 +27,7 @@ void main()
 {
   vec3  iResolution = vec3(1024, 1024, 1.0);
   float iGlobalTime = fTime;
-  vec2  p           = -3.0 + 5000.0 * fragCoord.xy / iResolution.xy;
+  vec2  p           = -3.0 + 5000.0 * uv.xy / iResolution.xy;
   p.x              *= iResolution.x/iResolution.y;
 
   // animation	
@@ -62,6 +62,5 @@ void main()
 	d = pow( d, 0.25 );
   vec3 col = vec3( d );
     
-  // fragColor = vec4( vec3(fragCoord.x,fragCoord.y,0.0), 1.0 );
-  fragColor = vec4( col, 1.0 );
+  fColor = vec4( col, 1.0 );
 }
