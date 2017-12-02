@@ -8,21 +8,21 @@ cache:
 matrix:
   include:
     - env: CABALVER=1.24.0.2 GHCVER=8.0.2
-      addons: {apt: {packages: [libsdl2-2.0-0,libxi-dev,libxrandr-dev,libxcursor-dev,libxinerama-dev,cabal-install,ghc],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libsdl2-dev,libsdl2-2.0-0,libxi-dev,libxrandr-dev,libxcursor-dev,libxinerama-dev,cabal-install,ghc],sources: [hvr-ghc]}}
 
 before_install:
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar -xzO --wildcards '*/stack' > ~/.local/bin/stack
   - chmod a+x ~/.local/bin/stack
+  - cabal update
 
 install:
   - pwd
   - ls -lah
-  - cabal update
-  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 setup --no-terminal
-  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
+  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 setup --no-terminal
+  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --only-snapshot --no-terminal
 
 script:
-  - echo "building script"
-  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --no-terminal
+  - cabal list sdl2
+  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --no-terminal
