@@ -16,6 +16,9 @@ before_install:
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar -xzO --wildcards '*/stack' > ~/.local/bin/stack
   - chmod a+x ~/.local/bin/stack
   - cabal update
+  - pushd SDL2-2.0.4 && ./configure --prefix=/usr && make && sudo make install && popd
+  - wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
+
 
 install:
   - pwd
@@ -24,5 +27,6 @@ install:
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --only-snapshot --no-terminal
 
 script:
+  - apt list sdl2
   - cabal list sdl2
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --no-terminal
