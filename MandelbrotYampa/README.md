@@ -28,4 +28,4 @@ Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://g
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.png)
 
 ## Animated Output:
-<img src="https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif" height="150%" width="150%">
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)
