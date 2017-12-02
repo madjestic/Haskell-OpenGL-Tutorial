@@ -19,8 +19,10 @@ before_install:
 install:
   - pwd
   - ls -lah
+  - cabal update
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 setup --no-terminal
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
 
 script:
+  - echo "building script"
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --no-terminal
