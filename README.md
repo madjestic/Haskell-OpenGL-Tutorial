@@ -10,6 +10,18 @@ an attempt to create a concise modern Haskell OpenGL boilerplate with basic IO a
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)
 
 
+## [A GLFW Boilerplate](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Boilerplate)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Boilerplate/output.png)
+
+
+## [A GLFW Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot)
+![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot/output.png)
+
+
+## [A SDL2 Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot-FRP-io-sdl2)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot-FRP-io-sdl2/output.png)
+
+
 ## [HelloWindow](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/HelloWindow)
 A Hello Window [OpenGL](https://github.com/haskell-opengl) application with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
 ### Output:
@@ -22,7 +34,7 @@ A simple OpenGL application, drawing a rectangle with texture blending, using el
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Transformations/output.png)
 
 
-## [Basic Hellow Window] (https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial00)
+## [Basic Hellow Window](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial00)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial00/tutorial01.png)
 
 
