@@ -15,8 +15,7 @@ before_install:
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar -xzO --wildcards '*/stack' > ~/.local/bin/stack
   - chmod a+x ~/.local/bin/stack
-  - apt list --installed
-  - sudo apt list --installed    
+  - sudo dpkg -l
   - wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
   - tar xvzf SDL2-2.0.4.tar.gz
   - pushd SDL2-2.0.4 && ./configure --prefix=/usr && make && sudo make install && popd
