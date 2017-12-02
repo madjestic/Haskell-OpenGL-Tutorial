@@ -23,4 +23,4 @@ install:
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
 
 script:
-  - cd MandelbrotYampa && stack -j 2 build --no-terminal
+  - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 2 build --no-terminal
