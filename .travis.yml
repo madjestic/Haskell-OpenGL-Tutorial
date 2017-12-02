@@ -8,7 +8,7 @@ cache:
 matrix:
   include:
     - env: CABALVER=1.24.0.2 GHCVER=8.0.2
-      addons: {apt: {packages: [cabal-install-1.24.0.2,ghc-8.0.2],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install(1.24.0.2-2),ghc(8.0.2-10)],sources: [hvr-ghc]}}
 
 before_install:
   - mkdir -p ~/.local/bin
