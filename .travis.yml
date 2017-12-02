@@ -17,6 +17,7 @@ before_install:
   - chmod a+x ~/.local/bin/stack
 
 install:
+  - ls -lah
   - cd MandelbrotYampa && stack -j 2 setup --no-terminal
   - cd MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
 
