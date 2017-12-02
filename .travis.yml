@@ -8,7 +8,7 @@ cache:
 matrix:
   include:
     - env: CABALVER=1.24.0.2 GHCVER=8.0.2
-      addons: {apt: {packages: [Xi,Xrandr,Xcursor,Xinerama,cabal-install,ghc],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libxi-dev,libxrandr-dev,libxcursor-dev,libxinerama-dev,cabal-install,ghc],sources: [hvr-ghc]}}
 
 before_install:
   - mkdir -p ~/.local/bin
