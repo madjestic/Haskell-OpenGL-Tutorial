@@ -4,7 +4,7 @@ A simple [OpenGL](https://github.com/haskell-opengl) application, using [FRP.Yam
 Shader-loading is handled by [Sven Panne's code](https://github.com/haskell-opengl/GLUT/blob/master/examples/RedBook8/common/LoadShaders.hs).
 Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://github.com/zudov) presentation at Helsinki User Group.
 
-## Prerequisits:
+## Prerequisites:
    Hardware, supporting OpenGL >= 4.5 (because that's what my hardware is).
    Most likely the code will run with lesser OpenGL versions, but you will
    have to mess with the code.
