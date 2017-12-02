@@ -8,7 +8,7 @@ cache:
 matrix:
   include:
     - env: CABALVER=1.24.0.2 GHCVER=8.0.2
-      addons: {apt: {packages: [libsdl2-dev,libsdl2-2.0-0,libxi-dev,libxrandr-dev,libxcursor-dev,libxinerama-dev,cabal-install,ghc],sources: [hvr-ghc]}}
+      addons: {apt: {packages: [libxi-dev,libxrandr-dev,libxcursor-dev,libxinerama-dev,cabal-install,ghc],sources: [hvr-ghc]}}
 
 before_install:
   - mkdir -p ~/.local/bin
@@ -18,6 +18,7 @@ before_install:
   - wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
   - tar xvzf SDL2-2.0.4.tar.gz
   - pushd SDL2-2.0.4 && ./configure --prefix=/usr && make && sudo make install && popd
+  - sudo dpkg -l | grep -i sdl2
   - cabal update
 
 
@@ -28,6 +29,5 @@ install:
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --only-snapshot --no-terminal
 
 script:
-  - apt list sdl2
   - cabal list sdl2
   - cd /home/travis/build/madjestic/Haskell-OpenGL-Tutorial/MandelbrotYampa && stack -j 4 build --no-terminal
