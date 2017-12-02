@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/madjestic/Haskell-OpenGL-Tutorial.svg?branch=master)](https://travis-ci.org/madjestic/Haskell-OpenGL-Tutorial)
+
 Haskell-OpenGL-Tutorial
 =======================
 
