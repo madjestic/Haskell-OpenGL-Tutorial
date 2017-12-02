@@ -1,0 +1,24 @@
+language: c
+
+sudo: false
+cache:
+  directories:
+  - $HOME/.stack/
+
+matrix:
+  include:
+    - env: CABALVER=1.24.0.2 GHCVER=8.0.2
+      addons: {apt: {packages: [cabal-install-1.24.0.2-2,ghc-8.0.2-10],sources: [hvr-ghc]}}
+
+before_install:
+  - mkdir -p ~/.local/bin
+  - export PATH=~/.local/bin:$PATH
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar -xzO --wildcards '*/stack' > ~/.local/bin/stack
+  - chmod a+x ~/.local/bin/stack
+
+install:
+  - cd MandelbrotYampa && stack -j 2 setup --no-terminal
+  - cd MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
+
+script:
+  - cd MandelbrotYampa && stack -j 2 build --no-terminal
