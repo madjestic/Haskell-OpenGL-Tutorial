@@ -18,8 +18,8 @@ before_install:
 
 install:
   - ls -lah
-  - cd MandelbrotYampa && stack -j 2 setup --no-terminal
-  - cd MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
+  - cd ./MandelbrotYampa && stack -j 2 setup --no-terminal
+  - cd ./MandelbrotYampa && stack -j 2 build --only-snapshot --no-terminal
 
 script:
   - cd MandelbrotYampa && stack -j 2 build --no-terminal
