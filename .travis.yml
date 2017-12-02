@@ -19,7 +19,8 @@ before_install:
   - wget https://www.libsdl.org/release/SDL2-2.0.4.tar.gz
   - tar xvzf SDL2-2.0.4.tar.gz
   - pushd SDL2-2.0.4 && ./configure --prefix=/usr && make && sudo make install && popd
-  - apt list --installed  
+  - apt list --installed
+  - sudo dpkg -l
   - cabal update
 
 
