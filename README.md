@@ -2,8 +2,8 @@
 
 # Haskell-OpenGL-Tutorial
 an attempt to create a concise modern Haskell OpenGL boilerplate with basic IO among other things...
-windows and input: SDL2
-shader uniforms  : +
+windows and input: SDL2  
+shader uniforms  : +  
 frp              : Yampa
 ## [MandelbrotYampa](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/MandelbrotYampa)
 
@@ -16,19 +16,19 @@ A simple [OpenGL](https://github.com/haskell-opengl) application, using [FRP.Yam
 
 ## [A GLFW Boilerplate](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Boilerplate)
 An OpenGL template:
-windows and input: GLFW
+windows and input: GLFW  
 shader uniforms  : -
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Boilerplate/output.png)
 
 
 ## [A GLFW Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot)
-windows and input: GLFW
+windows and input: GLFW  
 shader uniforms  : +
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot/output.png)
 
 
 ## [A SDL2 Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot-FRP-io-sdl2)
-windows and input: SDL2
+windows and input: SDL2  
 shader uniforms  : +
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot-FRP-io-sdl2/output.png)
 
