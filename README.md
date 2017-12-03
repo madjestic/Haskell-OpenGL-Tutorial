@@ -16,7 +16,7 @@ frp              : Yampa
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)
 
 
-\
+
 ## [A GLFW Boilerplate](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Boilerplate)
 An OpenGL template:
 ```
@@ -26,13 +26,14 @@ shader uniforms  : -
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Boilerplate/output.png)
 
 
-\
+
 ## [A GLFW Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot)
 ```
 windows and input: GLFW  
 shader uniforms  : +
 ```
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot/output.png)
+
 
 
 ## [A SDL2 Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot-FRP-io-sdl2)
@@ -43,10 +44,12 @@ shader uniforms  : +
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Mandelbrot-FRP-io-sdl2/output.png)
 
 
+
 ## [HelloWindow](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/HelloWindow)
 A Hello Window [OpenGL](https://github.com/haskell-opengl) application with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
 ### Output:
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/HelloWindow/output.png)
+
 
 
 ## [Transformations](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Transformations)
@@ -55,24 +58,30 @@ A simple OpenGL application, drawing a rectangle transformed by a GLMatrix with 
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Transformations/output.png)
 
 
+
 ## [Basic Hellow Window](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial00)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial00/tutorial01.png)
+
 
 
 ## [A Hello Window, with basic input callbacks.](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial01)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial00/tutorial01.png)
 
 
+
 ## [Drawing 2 triangles](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial02)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial02/output.png)
+
 
 
 ## [Drawing 2 textured triangles](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial03)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial03/output.png)
 
 
+
 ## [A colored triangle](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial04)
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/tutorial04/tutorial04_fixed.png)
+
 
 
 ## [Sugarizing the interface with polymorphic functions.](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/tutorial05)
