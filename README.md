@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/madjestic/Haskell-OpenGL-Tutorial.svg?branch=master)](https://travis-ci.org/madjestic/Haskell-OpenGL-Tutorial)
+<meta name="google-site-verification" content="R1PmBqKYw2VnuLyYatdXWNm6IkudeW55WZgqLRgJdhk" />
 
 # Haskell-OpenGL-Tutorial
 an attempt to create a concise modern Haskell OpenGL boilerplate with basic IO among other things...
