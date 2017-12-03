@@ -14,9 +14,9 @@ frp              : Yampa
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.png)
 ### Animated Output:
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)
-\
-  
-  
+<br>
+<br>
+<br>
 ## [A GLFW Boilerplate](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Boilerplate)
 An OpenGL template:
 ```
@@ -24,9 +24,9 @@ windows and input: GLFW
 shader uniforms  : -
 ```
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/Boilerplate/output.png)
-  
-  
-  
+<br>  
+<br>  
+<br>  
 ## [A GLFW Boilerplate with Mandelbrot shader](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Mandelbrot)
 ```
 windows and input: GLFW  
