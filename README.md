@@ -53,7 +53,7 @@ A Hello Window [OpenGL](https://github.com/haskell-opengl) application with [sta
 <br>
 <br>
 ## [Transformations](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/Transformations)
-A simple OpenGL application, drawing a rectangle transformed by a GLMatrix with texture blending, using element buffer.  [OpenGL](https://github.com/haskell-opengl) application with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
+A simple [OpenGL](https://github.com/haskell-opengl) application, drawing a polygon with texture blending, transformed by GLMatrix, using element buffer, with [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
 ## Output:
 ![](https://raw.githubusercontent.com/madjestic/Haskell-OpenGL-Tutorial/master/Transformations/output.png)
 <br>
