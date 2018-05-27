@@ -14,15 +14,11 @@ import LoadShaders
 import Text.Printf
 
 import SDL                             hiding (Point, Event, Timer)
-
 import Input
-import Types
 
 -- < Game Types > --------------------------------------------------------------
-data Game       = Game { timer :: Timer  }
+data Game       = Game { time :: Time }
                 deriving Show
-
-type Timer       = Double
 
 -- < Rendering > ----------------------------------------------------------
 openWindow :: Text -> (CInt, CInt) -> IO SDL.Window
@@ -48,9 +44,9 @@ closeWindow window = do
     SDL.quit
 
 draw :: SDL.Window -> Double -> IO ()
-draw window timer = do
-      -- (Descriptor triangles firstIndex numVertices) <- initResources drawable timer
-      (Descriptor triangles numIndices) <- initResources verticies indices timer
+draw window time = do
+      -- (Descriptor triangles firstIndex numVertices) <- initResources drawable time
+      (Descriptor triangles numIndices) <- initResources verticies indices time
 
       GL.clearColor $= Color4 0 0 0 1
       GL.clear [ColorBuffer]
@@ -62,27 +58,6 @@ draw window timer = do
 -- < OpenGL > -------------------------------------------------------------
 data Descriptor =
      Descriptor VertexArrayObject NumArrayIndices
-
-data GLMatrix a =
-     GLMatrix !a !a !a !a
-              !a !a !a !a
-              !a !a !a !a
-              !a !a !a !a
-                deriving Eq
-
-instance PrintfArg a => Show (GLMatrix a) where
-  show (GLMatrix m11 m12 m13 m14
-                 m21 m22 m23 m24
-                 m31 m32 m33 m34
-                 m41 m42 m43 m44) =
-    let matrix = "[ %v %v %v %v ]\n\
-                 \[ %v %v %v %v ]\n\
-                 \[ %v %v %v %v ]\n\
-                 \[ %v %v %v %v ]\n"
-    in printf matrix m11 m12 m13 m14
-                     m21 m22 m23 m24
-                     m31 m32 m33 m34
-                     m41 m42 m43 m44
 
 verticies :: [GLfloat]
 verticies =
@@ -101,9 +76,9 @@ indices =
   ]
 
 -- initResources :: ([Vertex4 Double]) -> Double -> IO Descriptor
--- initResources (vs) timer =
+-- initResources (vs) time =
 initResources :: [GLfloat] -> [GLuint] -> Double -> IO Descriptor
-initResources vs idx timer =  
+initResources vs idx time =  
   do
     -- | VAO
     triangles <- genObjectName
@@ -153,7 +128,7 @@ initResources vs idx timer =
 
     -- Set Uniforms
     location <- get (uniformLocation program "fTime")
-    uniform location $= (realToFrac timer :: GLfloat)
+    uniform location $= (realToFrac time :: GLfloat)
 
     -- Set Transform Matrix
     let tr =
@@ -180,6 +155,7 @@ bufferOffset = plusPtr nullPtr . fromIntegral
 
  -- < Animate > ------------------------------------------------------------
 
+type WinInput = Event SDL.EventPayload
 type WinOutput = (Double, Bool)
 
 animate :: Text                   -- ^ window title
@@ -198,8 +174,8 @@ animate title winWidth winHeight sf = do
             mEvent <- SDL.pollEvent                          
             return (dt, Event . SDL.eventPayload <$> mEvent) 
     -- Output Logic -----------------------------------------------------
-        renderOutput _ (timer, shouldExit) = do
-            draw window timer
+        renderOutput _ (time, shouldExit) = do
+            draw window time
             return shouldExit 
 
     -- Reactimate -----------------------------------------------------
@@ -217,9 +193,9 @@ stateReleased k0 =
   switch sf cont
     where
          sf = proc input -> do
-            timer    <- constant k0 -< ()
-            zoomIn   <- trigger -< input
-            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+            time    <- constant k0 -< ()
+            zoomIn   <- zoomEvent -< input
+            returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
          cont x = stateTriggered (x)
 
 stateTriggered :: Double -> SF AppInput Double
@@ -227,54 +203,58 @@ stateTriggered k0 =
   switch sf cont
     where
          sf = proc input -> do
-            timer    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
-            zoomIn   <- release -< input
-            returnA  -< (timer, zoomIn `tag` timer):: (Double, Event Double)
+            time    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
+            zoomIn   <- releaseEvent -< input
+            returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
          cont x = stateReleased (x)
 
-trigger :: SF AppInput (Event ())
-trigger =
+zoomEvent :: SF AppInput (Event ())
+zoomEvent =
   proc input -> do
     upTapHold   <- keyPressedRepeat (SDL.ScancodeSpace, True) -< input
     upTap       <- keyPressed       (SDL.ScancodeSpace)       -< input
     returnA     -< lMerge upTap upTapHold
 
-release :: SF AppInput (Event ())
-release =
+releaseEvent :: SF AppInput (Event ())
+releaseEvent =
   proc input -> do
     unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
     returnA  -< unTap
 
-initTimer :: Timer
-initTimer = 0
+initTime :: Time
+initTime = 0
 
-exitTrigger :: SF AppInput (Event ())
-exitTrigger =
+resetTrigger :: SF AppInput (Event ())
+resetTrigger =
   proc input -> do
     qTap     <- keyPressed ScancodeQ -< input
     returnA  -< qTap
 
 -- < Game Logic > ---------------------------------------------------------
 gameSession :: SF AppInput Game
-gameSession = proc input -> do
-     timer <- stateReleased initTimer -< input
-     returnA -< Game timer
+gameSession =
+  proc input -> do
+     time <- stateReleased initTime -< input
+     returnA -< Game time
 
 game :: SF AppInput Game
 game = switch sf (\_ -> game)        
-     where sf = proc input -> do
-                     gameState <- gameSession  -< input
-                     gameOver  <- exitTrigger -< input
-                     returnA   -< (gameState, gameOver)
+     where sf =
+             proc input -> do
+               gameState <- gameSession  -< input
+               reset     <- resetTrigger -< input
+               returnA   -< (gameState, reset)
 
-render :: Game -> Timer
-render (Game timer) = timer
+t :: Game -> Time
+t (Game time) = time
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
 
--- < Main Function > -----------------------------------------------------------
+  -- < Main Function > -----------------------------------------------------------
 main :: IO ()
 main =
-     animate "Mandelbrot" 800 600
-                          (parseWinInput >>> ((game >>^ render) &&& handleExit))
+     animate "Mandelbrot"
+             800
+             600
+             (parseWinInput >>> ((game >>^ t) &&& handleExit))

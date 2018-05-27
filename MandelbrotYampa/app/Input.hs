@@ -26,7 +26,7 @@ import           Linear.Affine (Point(..))
 import           SDL.Input.Keyboard.Codes
 import qualified SDL
 
-import Types
+-- import Types
 
 -- <| Signal Functions |> --
 
@@ -81,7 +81,6 @@ keyPressedRepeat (code, rep) =
 
 quitEvent :: SF AppInput (Event ())
 quitEvent = arr inpQuit >>> edge
-
 -- | Exported as abstract type. Fields are accessed with signal functions.
 data AppInput = AppInput
     { inpMousePos    :: (Double, Double)        -- ^ Current mouse position
@@ -92,6 +91,8 @@ data AppInput = AppInput
     , inpKeyRepeat   :: Bool
     , inpQuit        :: Bool                    -- ^ SDL's QuitEvent
     }
+
+type WinInput = Event SDL.EventPayload    
 
 initAppInput :: AppInput
 initAppInput = AppInput { inpMousePos   = (0, 0)
@@ -110,11 +111,14 @@ parseWinInput = accumHoldBy nextAppInput initAppInput
 
 -- | Compute next input
 nextAppInput :: AppInput -> SDL.EventPayload -> AppInput
-nextAppInput inp SDL.QuitEvent = inp { inpQuit = True }
+nextAppInput inp SDL.QuitEvent
+  = inp { inpQuit = True }
 nextAppInput inp (SDL.MouseMotionEvent ev) =
     inp { inpMousePos = (fromIntegral x, fromIntegral y) }
     where P (V2 x y) = SDL.mouseMotionEventPos ev
 nextAppInput inp (SDL.KeyboardEvent ev)
+    | (SDL.keysymScancode $ SDL.keyboardEventKeysym ev) == SDL.ScancodeEscape
+      = inp { inpQuit = True }
     | SDL.keyboardEventKeyMotion ev == SDL.Pressed &&
       SDL.keyboardEventRepeat    ev == True
       = inp { inpKeyPressed = Just $ SDL.keysymScancode $ SDL.keyboardEventKeysym ev
