@@ -15,13 +15,15 @@ Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://g
   stack exec Mandelbrot
   # or, in case you are running a hybrid graphics like myself, use a launch script, e.g.:
   gpu ./run.sh
+  ( stack build && gpu ./run.sh )
   
 ```
 
 ## Controls:
 ```
-  space - zoom in
-  q     - reset
+  space  - zoom in
+  q      - reset
+  Escape - quit
 ```
 
 ## Output:
