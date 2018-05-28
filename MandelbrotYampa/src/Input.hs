@@ -8,10 +8,9 @@ module Input
     , rbp
     , rbpPos
     , rbDown
-    , keyPress
     , keyPressed
     , keyReleased
-    , keyPressedRepeat
+    , keyPressHold
     , quitEvent
     , module SDL.Input.Keyboard.Codes
     ) where
@@ -58,51 +57,49 @@ rbpPos = inpMouseRight ^>> edgeJust
 rbDown :: SF AppInput Bool
 rbDown = arr (isJust . inpMouseRight)
 
-keyPress :: SF AppInput (Event SDL.Scancode)
-keyPress = inpKeyPressed ^>> edgeJust
-
 keyPressed :: SDL.Scancode -> SF AppInput (Event ())
 keyPressed code =
-  keyPress >>^ filterE (code ==) >>^ tagWith ()
-
-keyRelease :: SF AppInput (Event SDL.Scancode)
-keyRelease = inpKeyReleased ^>> edgeJust
+  (inpKeyPressed ^>> edgeJust) >>^ filterE (code ==) >>^ tagWith ()
 
 keyReleased :: SDL.Scancode -> SF AppInput (Event ())
 keyReleased code =
-  keyRelease >>^ filterE (code ==) >>^ tagWith ()
+  (inpKeyReleased ^>> edgeJust) >>^ filterE (code ==) >>^ tagWith ()
 
 keyPressRepeat :: SF AppInput (Event Bool)
 keyPressRepeat = inpKeyRepeat ^>> (edge >>^ tagWith True)
 
-keyPressedRepeat :: (SDL.Scancode, Bool) -> SF AppInput (Event ())
-keyPressedRepeat (code, rep) =
+keyPressHold :: (SDL.Scancode, Bool) -> SF AppInput (Event ())
+keyPressHold (code, rep) =
   keyPressRepeat >>^ filterE (rep ==) >>^ tagWith ()  
 
 quitEvent :: SF AppInput (Event ())
 quitEvent = arr inpQuit >>> edge
 -- | Exported as abstract type. Fields are accessed with signal functions.
-data AppInput = AppInput
-    { inpMousePos    :: (Double, Double)        -- ^ Current mouse position
-    , inpMouseLeft   :: Maybe (Double, Double)  -- ^ Left button currently down
-    , inpMouseRight  :: Maybe (Double, Double)  -- ^ Right button currently down
-    , inpKeyPressed  :: Maybe SDL.Scancode
-    , inpKeyReleased :: Maybe SDL.Scancode
-    , inpKeyRepeat   :: Bool
-    , inpQuit        :: Bool                    -- ^ SDL's QuitEvent
-    }
+-- | AppInput ~= AppInput
+data AppInput =
+     AppInput
+     { inpMousePos    :: (Double, Double)        -- ^ Current mouse position
+     , inpMouseLeft   :: Maybe (Double, Double)  -- ^ Left button currently down
+     , inpMouseRight  :: Maybe (Double, Double)  -- ^ Right button currently down
+     , inpKeyPressed  :: Maybe SDL.Scancode
+     , inpKeyReleased :: Maybe SDL.Scancode
+     , inpKeyRepeat   :: Bool
+     , inpQuit        :: Bool                    -- ^ SDL's QuitEvent
+     }
 
 type WinInput = Event SDL.EventPayload    
 
 initAppInput :: AppInput
-initAppInput = AppInput { inpMousePos   = (0, 0)
-                        , inpMouseLeft  = Nothing
-                        , inpMouseRight = Nothing
-                        , inpKeyPressed = Nothing
-                        , inpKeyReleased= Nothing
-                        , inpKeyRepeat  = False
-                        , inpQuit       = False
-                        }
+initAppInput =
+     AppInput
+     { inpMousePos     = (0, 0)
+     , inpMouseLeft    = Nothing
+     , inpMouseRight   = Nothing
+     , inpKeyPressed   = Nothing
+     , inpKeyReleased  = Nothing
+     , inpKeyRepeat    = False
+     , inpQuit         = False
+     }
 
 -- | Filter and transform SDL events into events which are relevant to our
 --   application

@@ -200,7 +200,7 @@ stateTriggered k0 =
   switch sf cont
     where
          sf = proc input -> do
-            time    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
+            time     <- (k0 +) ^<< integral <<< constant 0.1 -< ()
             zoomIn   <- keyReleasedSpace -< input
             returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
          cont x = statePassive (x)
@@ -208,18 +208,15 @@ stateTriggered k0 =
 pressHoldSpace :: SF AppInput (Event ())
 pressHoldSpace =
   proc input -> do
-    upTapHold   <- keyPressedRepeat (SDL.ScancodeSpace, True) -< input
-    upTap       <- keyPressed       (SDL.ScancodeSpace)       -< input
+    upTapHold   <- keyPressHold (SDL.ScancodeSpace, True) -< input
+    upTap       <- keyPressed   (SDL.ScancodeSpace)       -< input
     returnA     -< lMerge upTap upTapHold
 
 keyReleasedSpace :: SF AppInput (Event ())
 keyReleasedSpace =
   proc input -> do
-    unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
+    unTap    <- keyReleased (SDL.ScancodeSpace) -< input
     returnA  -< unTap
-
-initTime :: Time
-initTime = 0
 
 keyPressedQ :: SF AppInput (Event ())
 keyPressedQ =
@@ -227,28 +224,33 @@ keyPressedQ =
     qTap     <- keyPressed ScancodeQ -< input
     returnA  -< qTap
 
+handleExit :: SF AppInput Bool
+handleExit = quitEvent >>^ isEvent
+
 -- < Game Logic > ---------------------------------------------------------
-gameSession :: SF AppInput Game
-gameSession =
-  proc input -> do
-     time <- statePassive initTime -< input
-     returnA -< Game time
+
+t0 :: Time
+t0 = 0
+
+t :: Game -> Time
+t (Game time) = time
 
 game :: SF AppInput Game
 game = switch sf (\_ -> game)        
      where sf =
              proc input -> do
                gameState <- gameSession  -< input
-               reset     <- keyPressedQ -< input
+               reset     <- keyPressedQ  -< input
                returnA   -< (gameState, reset)
 
-t :: Game -> Time
-t (Game time) = time
+gameSession :: SF AppInput Game
+gameSession =
+  proc input -> do
+     time <- statePassive t0 -< input
+     returnA -< Game time
 
-handleExit :: SF AppInput Bool
-handleExit = quitEvent >>^ isEvent
+-- < Main Function > ------------------------------------------------------
 
-  -- < Main Function > -----------------------------------------------------------
 main :: IO ()
 main =
      animate "Mandelbrot"
