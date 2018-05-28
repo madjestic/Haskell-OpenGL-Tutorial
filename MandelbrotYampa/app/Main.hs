@@ -45,7 +45,6 @@ closeWindow window = do
 
 draw :: SDL.Window -> Double -> IO ()
 draw window time = do
-      -- (Descriptor triangles firstIndex numVertices) <- initResources drawable time
       (Descriptor triangles numIndices) <- initResources verticies indices time
 
       GL.clearColor $= Color4 0 0 0 1
@@ -75,8 +74,6 @@ indices =
     1, 2, 3  -- Second Triangle
   ]
 
--- initResources :: ([Vertex4 Double]) -> Double -> IO Descriptor
--- initResources (vs) time =
 initResources :: [GLfloat] -> [GLuint] -> Double -> IO Descriptor
 initResources vs idx time =  
   do
@@ -188,13 +185,13 @@ animate title winWidth winHeight sf = do
 
 -- < Input Handling > -----------------------------------------------------
 
-stateReleased :: Double -> SF AppInput Double
-stateReleased k0 =
+statePassive :: Double -> SF AppInput Double
+statePassive k0 =
   switch sf cont
     where
          sf = proc input -> do
             time    <- constant k0 -< ()
-            zoomIn   <- zoomEvent -< input
+            zoomIn   <- pressHoldSpace -< input
             returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
          cont x = stateTriggered (x)
 
@@ -204,19 +201,19 @@ stateTriggered k0 =
     where
          sf = proc input -> do
             time    <- (k0 +) ^<< integral <<< constant 0.1 -< ()
-            zoomIn   <- releaseEvent -< input
+            zoomIn   <- keyReleasedSpace -< input
             returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
-         cont x = stateReleased (x)
+         cont x = statePassive (x)
 
-zoomEvent :: SF AppInput (Event ())
-zoomEvent =
+pressHoldSpace :: SF AppInput (Event ())
+pressHoldSpace =
   proc input -> do
     upTapHold   <- keyPressedRepeat (SDL.ScancodeSpace, True) -< input
     upTap       <- keyPressed       (SDL.ScancodeSpace)       -< input
     returnA     -< lMerge upTap upTapHold
 
-releaseEvent :: SF AppInput (Event ())
-releaseEvent =
+keyReleasedSpace :: SF AppInput (Event ())
+keyReleasedSpace =
   proc input -> do
     unTap    <- keyReleased      (SDL.ScancodeSpace)       -< input
     returnA  -< unTap
@@ -224,8 +221,8 @@ releaseEvent =
 initTime :: Time
 initTime = 0
 
-resetTrigger :: SF AppInput (Event ())
-resetTrigger =
+keyPressedQ :: SF AppInput (Event ())
+keyPressedQ =
   proc input -> do
     qTap     <- keyPressed ScancodeQ -< input
     returnA  -< qTap
@@ -234,7 +231,7 @@ resetTrigger =
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
-     time <- stateReleased initTime -< input
+     time <- statePassive initTime -< input
      returnA -< Game time
 
 game :: SF AppInput Game
@@ -242,7 +239,7 @@ game = switch sf (\_ -> game)
      where sf =
              proc input -> do
                gameState <- gameSession  -< input
-               reset     <- resetTrigger -< input
+               reset     <- keyPressedQ -< input
                returnA   -< (gameState, reset)
 
 t :: Game -> Time
