@@ -21,7 +21,8 @@ Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://g
 
 ## Controls:
 ```
-  space  - zoom in
+  Up     - zoom in
+  Down   - zoom out
   q      - reset
   Escape - quit
 ```

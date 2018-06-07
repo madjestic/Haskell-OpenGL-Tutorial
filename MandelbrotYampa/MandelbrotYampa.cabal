@@ -37,7 +37,6 @@ executable MandelbrotYampa
                      , linear >= 1.20.7
                      , OpenGL >= 3.0 && < 4
                      , sdl2   >= 2.3.0
---                     , sdl2-gfx >= 0.2
                      , text   >= 1.2.2.2
                      , Yampa  >= 0.10.6
                      , MandelbrotYampa
