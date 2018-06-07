@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings, Arrows #-}
+{-# LANGUAGE MultiWayIf #-}
+
 module Main where 
 
 import Control.Concurrent
 import Control.Monad
 import Data.Text                              (Text)
+import Data.Maybe
 import Foreign.C                              
 import Foreign.Marshal.Array                  (withArray)
 import Foreign.Ptr                            (plusPtr, nullPtr, Ptr)
@@ -15,6 +18,8 @@ import Text.Printf
 
 import SDL                             hiding (Point, Event, Timer)
 import Input
+
+import Debug.Trace as DT
 
 -- < Game Types > --------------------------------------------------------------
 data Game       = Game { time :: Time }
@@ -119,15 +124,15 @@ initResources vs idx time =
 
     -- || Shaders
     program <- loadShaders [
-        ShaderInfo VertexShader (FileSource "Shaders/shader.vert"),
+        ShaderInfo VertexShader   (FileSource "Shaders/shader.vert"),
         ShaderInfo FragmentShader (FileSource "Shaders/shader.frag")]
     currentProgram $= Just program
 
-    -- Set Uniforms
+    -- || Set Uniforms
     location <- get (uniformLocation program "fTime")
     uniform location $= (realToFrac time :: GLfloat)
 
-    -- Set Transform Matrix
+    -- || Set Transform Matrix
     let tr =
           [ 1, 0, 0, 0
           , 0, 1, 0, 0
@@ -137,13 +142,10 @@ initResources vs idx time =
     transform <- GL.newMatrix ColumnMajor tr :: IO (GLmatrix GLfloat)
     location2 <- get (uniformLocation program "transform")
     uniform location2 $= (transform)
-    
 
     -- || Unload buffers
     bindVertexArrayObject         $= Nothing
-    -- bindBuffer ElementArrayBuffer $= Nothing
 
-    -- return $ Descriptor triangles posOffset (fromIntegral numIndices)
     return $ Descriptor triangles (fromIntegral numIndices)
     
 
@@ -176,53 +178,51 @@ animate title winWidth winHeight sf = do
             return shouldExit 
 
     -- Reactimate -----------------------------------------------------
-    reactimate (return NoEvent)
-               senseInput
+    reactimate (return NoEvent) -- initialize
+               senseInput   
                renderOutput
                sf
 
     closeWindow window
 
 -- < Input Handling > -----------------------------------------------------
+updateTime :: Double -> SF AppInput Double
+updateTime k0 =
+  switch sf cont
+    where
+      sf = proc input -> do
+        pressSpaceE <- key (SDL.ScancodeUp)   "Pressed" -< input
+        pressLeftE  <- key (SDL.ScancodeDown) "Pressed" -< input
+        let res :: (Double, Event (), Event ())
+            res = (k0, pressSpaceE, pressLeftE)
+        returnA -< (k0, (lMerge pressSpaceE pressLeftE) `tag` res)
+      cont (x,phse, phle) = if | isEvent phse -> zoomIn (x)
+--                               | isEvent phle -> contSF2 (x)
+                               | otherwise    -> zoomOut (x)
 
-statePassive :: Double -> SF AppInput Double
-statePassive k0 =
+zoomIn :: Double -> SF AppInput Double
+zoomIn k0 =
   switch sf cont
     where
          sf = proc input -> do
-            time    <- constant k0 -< ()
-            zoomIn   <- pressHoldSpace -< input
-            returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
-         cont x = stateTriggered (x)
+            time    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+                       (k0 +) ^<< integral <<< constant 0.1 -< ()
+            event1  <- key (SDL.ScancodeUp)   "Released"  -< input
+            event2  <- key (SDL.ScancodeDown) "Released"-< input
+            returnA -< (time, (lMerge event1 event2) `tag` time) :: (Double, Event Double)
+         cont x = updateTime (x)
 
-stateTriggered :: Double -> SF AppInput Double
-stateTriggered k0 =
+zoomOut :: Double -> SF AppInput Double
+zoomOut k0 =
   switch sf cont
     where
          sf = proc input -> do
-            time     <- (k0 +) ^<< integral <<< constant 0.1 -< ()
-            zoomIn   <- keyReleasedSpace -< input
-            returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
-         cont x = statePassive (x)
-
-pressHoldSpace :: SF AppInput (Event ())
-pressHoldSpace =
-  proc input -> do
-    upTapHold   <- keyPressHold (SDL.ScancodeSpace, True) -< input
-    upTap       <- keyPressed   (SDL.ScancodeSpace)       -< input
-    returnA     -< lMerge upTap upTapHold
-
-keyReleasedSpace :: SF AppInput (Event ())
-keyReleasedSpace =
-  proc input -> do
-    unTap    <- keyReleased (SDL.ScancodeSpace) -< input
-    returnA  -< unTap
-
-keyPressedQ :: SF AppInput (Event ())
-keyPressedQ =
-  proc input -> do
-    qTap     <- keyPressed ScancodeQ -< input
-    returnA  -< qTap
+            time    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+                       (k0 -) ^<< integral <<< constant 0.1 -< ()
+            event1  <- key (SDL.ScancodeUp)   "Released" -< input
+            event2  <- key (SDL.ScancodeDown) "Released" -< input
+            returnA -< (time, (lMerge event1 event2) `tag` time) :: (Double, Event Double)            
+         cont x = updateTime (x)
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
@@ -240,13 +240,13 @@ game = switch sf (\_ -> game)
      where sf =
              proc input -> do
                gameState <- gameSession  -< input
-               reset     <- keyPressedQ  -< input
+               reset     <- key (SDL.ScancodeQ) "Pressed" -< input
                returnA   -< (gameState, reset)
 
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
-     time <- statePassive t0 -< input
+     time <- updateTime t0 -< input
      returnA -< Game time
 
 -- < Main Function > ------------------------------------------------------
@@ -257,3 +257,18 @@ main =
              800
              600
              (parseWinInput >>> ((game >>^ t) &&& handleExit))
+
+-- animate "Mandelbrot" 800 600 (parseWinInput >>> ((game >>^ t) &&& handleExit))
+--                          game :: SF AppInput Game
+--                         (>>^) :: Arrow a => a b c -> (c -> d) -> a b d
+--                             t :: Game -> Time
+--                  (game >>^ t) :: SF AppInput Time
+--                    handleExit :: SF AppInput Bool
+--                         (&&&) :: a b c -> a b c' -> a b (c, c')
+-- ((game >>^ t) &&& handleExit) :: SF AppInput (Time, Bool)
+--                           >>> :: Category cat => cat a b -> cat b c -> cat a c
+--                 parseWinInput :: SF WinInput AppInput
+-- (parseWinInput >>> ((game >>^ t) &&& handleExit)) :: SF WinInput (Time, Bool)
+--                       animate :: Text -> CInt -> CInt -> SF WinInput WinOutput -> IO ()
+--                                                                 type WinOutput = (Double, Bool)
+--                                                                 type Time      = Double
