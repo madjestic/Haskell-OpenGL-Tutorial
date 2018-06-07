@@ -21,10 +21,6 @@ import Input
 
 import Debug.Trace as DT
 
--- < Game Types > --------------------------------------------------------------
-data Game       = Game { time :: Time }
-                deriving Show
-
 -- < Rendering > ----------------------------------------------------------
 openWindow :: Text -> (CInt, CInt) -> IO SDL.Window
 openWindow title (sizex,sizey) = do
@@ -49,8 +45,8 @@ closeWindow window = do
     SDL.quit
 
 draw :: SDL.Window -> Double -> IO ()
-draw window time = do
-      (Descriptor triangles numIndices) <- initResources verticies indices time
+draw window zoom = do
+      (Descriptor triangles numIndices) <- initResources verticies indices zoom
 
       GL.clearColor $= Color4 0 0 0 1
       GL.clear [ColorBuffer]
@@ -80,7 +76,7 @@ indices =
   ]
 
 initResources :: [GLfloat] -> [GLuint] -> Double -> IO Descriptor
-initResources vs idx time =  
+initResources vs idx zoom =  
   do
     -- | VAO
     triangles <- genObjectName
@@ -130,7 +126,7 @@ initResources vs idx time =
 
     -- || Set Uniforms
     location <- get (uniformLocation program "fTime")
-    uniform location $= (realToFrac time :: GLfloat)
+    uniform location $= (realToFrac zoom :: GLfloat)
 
     -- || Set Transform Matrix
     let tr =
@@ -173,8 +169,8 @@ animate title winWidth winHeight sf = do
             mEvent <- SDL.pollEvent                          
             return (dt, Event . SDL.eventPayload <$> mEvent) 
     -- Output Logic -----------------------------------------------------
-        renderOutput _ (time, shouldExit) = do
-            draw window time
+        renderOutput _ (zoom, shouldExit) = do
+            draw window zoom
             return shouldExit 
 
     -- Reactimate -----------------------------------------------------
@@ -191,11 +187,11 @@ updateTime k0 =
   switch sf cont
     where
       sf = proc input -> do
-        pressSpaceE <- key (SDL.ScancodeUp)   "Pressed" -< input
-        pressLeftE  <- key (SDL.ScancodeDown) "Pressed" -< input
+        event1 <- key (SDL.ScancodeUp)   "Pressed" -< input
+        event2 <- key (SDL.ScancodeDown) "Pressed" -< input
         let res :: (Double, Event (), Event ())
-            res = (k0, pressSpaceE, pressLeftE)
-        returnA -< (k0, (lMerge pressSpaceE pressLeftE) `tag` res)
+            res = (k0, event1, event2)
+        returnA -< (k0, (lMerge event1 event2) `tag` res)
       cont (x,phse, phle) = if | isEvent phse -> zoomIn (x)
 --                               | isEvent phle -> contSF2 (x)
                                | otherwise    -> zoomOut (x)
@@ -205,11 +201,11 @@ zoomIn k0 =
   switch sf cont
     where
          sf = proc input -> do
-            time    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+            zoom    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
                        (k0 +) ^<< integral <<< constant 0.1 -< ()
             event1  <- key (SDL.ScancodeUp)   "Released"  -< input
             event2  <- key (SDL.ScancodeDown) "Released"-< input
-            returnA -< (time, (lMerge event1 event2) `tag` time) :: (Double, Event Double)
+            returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)
          cont x = updateTime (x)
 
 zoomOut :: Double -> SF AppInput Double
@@ -217,23 +213,23 @@ zoomOut k0 =
   switch sf cont
     where
          sf = proc input -> do
-            time    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+            zoom    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
                        (k0 -) ^<< integral <<< constant 0.1 -< ()
             event1  <- key (SDL.ScancodeUp)   "Released" -< input
             event2  <- key (SDL.ScancodeDown) "Released" -< input
-            returnA -< (time, (lMerge event1 event2) `tag` time) :: (Double, Event Double)            
+            returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)            
          cont x = updateTime (x)
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
 
+-- < Game Types > --------------------------------------------------------------
+data Game       = Game { zoom :: Double }
+                deriving Show
+
 -- < Game Logic > ---------------------------------------------------------
-
-t0 :: Time
+t0 :: Double
 t0 = 0
-
-t :: Game -> Time
-t (Game time) = time
 
 game :: SF AppInput Game
 game = switch sf (\_ -> game)        
@@ -246,8 +242,8 @@ game = switch sf (\_ -> game)
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
-     time <- updateTime t0 -< input
-     returnA -< Game time
+     zoom <- updateTime t0 -< input
+     returnA -< Game zoom
 
 -- < Main Function > ------------------------------------------------------
 
@@ -256,7 +252,7 @@ main =
      animate "Mandelbrot"
              800
              600
-             (parseWinInput >>> ((game >>^ t) &&& handleExit))
+             (parseWinInput >>> ((game >>^ zoom) &&& handleExit))
 
 -- animate "Mandelbrot" 800 600 (parseWinInput >>> ((game >>^ t) &&& handleExit))
 --                          game :: SF AppInput Game
