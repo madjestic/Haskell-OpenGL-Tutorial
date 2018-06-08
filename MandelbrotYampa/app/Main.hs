@@ -187,8 +187,8 @@ updateZoom k0 =
   switch sf cont
     where
       sf = proc input -> do
-        event1 <- key (SDL.ScancodeUp)   "Pressed" -< input
-        event2 <- key (SDL.ScancodeDown) "Pressed" -< input
+        event1 <- key SDL.ScancodeUp   "Pressed" -< input
+        event2 <- key SDL.ScancodeDown "Pressed" -< input
         let res :: (Double, Event (), Event ())
             res = (k0, event1, event2)
         returnA -< (k0, (lMerge event1 event2) `tag` res)
@@ -203,8 +203,8 @@ zoomIn k0 =
          sf = proc input -> do
             zoom    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
                        (k0 +) ^<< integral <<< constant 0.1 -< ()
-            event1  <- key (SDL.ScancodeUp)   "Released"  -< input
-            event2  <- key (SDL.ScancodeDown) "Released"-< input
+            event1  <- key SDL.ScancodeUp   "Released"  -< input
+            event2  <- key SDL.ScancodeDown "Released"-< input
             returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)
          cont x = updateZoom (x)
 
@@ -215,8 +215,8 @@ zoomOut k0 =
          sf = proc input -> do
             zoom    <- DT.trace ("k0: " ++ show k0 ++ "\n") $
                        (k0 -) ^<< integral <<< constant 0.1 -< ()
-            event1  <- key (SDL.ScancodeUp)   "Released" -< input
-            event2  <- key (SDL.ScancodeDown) "Released" -< input
+            event1  <- key SDL.ScancodeUp   "Released" -< input
+            event2  <- key SDL.ScancodeDown "Released" -< input
             returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)            
          cont x = updateZoom (x)
 
@@ -236,7 +236,7 @@ game = switch sf (\_ -> game)
      where sf =
              proc input -> do
                gameState <- gameSession  -< input
-               reset     <- key (SDL.ScancodeQ) "Pressed" -< input
+               reset     <- key SDL.ScancodeQ "Pressed" -< input
                returnA   -< (gameState, reset)
 
 gameSession :: SF AppInput Game
