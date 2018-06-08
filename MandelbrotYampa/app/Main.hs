@@ -182,8 +182,8 @@ animate title winWidth winHeight sf = do
     closeWindow window
 
 -- < Input Handling > -----------------------------------------------------
-updateTime :: Double -> SF AppInput Double
-updateTime k0 =
+updateZoom :: Double -> SF AppInput Double
+updateZoom k0 =
   switch sf cont
     where
       sf = proc input -> do
@@ -206,7 +206,7 @@ zoomIn k0 =
             event1  <- key (SDL.ScancodeUp)   "Released"  -< input
             event2  <- key (SDL.ScancodeDown) "Released"-< input
             returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)
-         cont x = updateTime (x)
+         cont x = updateZoom (x)
 
 zoomOut :: Double -> SF AppInput Double
 zoomOut k0 =
@@ -218,7 +218,7 @@ zoomOut k0 =
             event1  <- key (SDL.ScancodeUp)   "Released" -< input
             event2  <- key (SDL.ScancodeDown) "Released" -< input
             returnA -< (zoom, (lMerge event1 event2) `tag` zoom) :: (Double, Event Double)            
-         cont x = updateTime (x)
+         cont x = updateZoom (x)
 
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
@@ -242,7 +242,7 @@ game = switch sf (\_ -> game)
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
-     zoom <- updateTime t0 -< input
+     zoom <- updateZoom t0 -< input
      returnA -< Game zoom
 
 -- < Main Function > ------------------------------------------------------
