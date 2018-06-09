@@ -1,8 +1,6 @@
-# MandelbrotYampa
+# MandelbrotViewer
 
-A simple [OpenGL](https://github.com/haskell-opengl) application, using [FRP.Yampa](https://github.com/ivanperez-keera/Yampa) to handle animation and user events,  SDL2 for managing windows and input, [stack](https://docs.haskellstack.org/en/stable/README/) as a build system.
-Shader-loading is handled by [Sven Panne's code](https://github.com/haskell-opengl/GLUT/blob/master/examples/RedBook8/common/LoadShaders.hs).
-Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://github.com/zudov) presentation at Helsinki User Group.
+A further development of [MandelbrotYampa](https://github.com/madjestic/Haskell-OpenGL-Tutorial/tree/master/MandelbrotYampa) with extended IO.
 
 ## Prerequisites:
    Hardware, supporting OpenGL >= 4.5 (because that's what my hardware is).
@@ -21,10 +19,11 @@ Input handling is inspired and based on [Konstantin Zudov, Yampy Cube](https://g
 
 ## Controls:
 ```
-  Up     - zoom in
-  Down   - zoom out
-  q      - reset
-  Escape - quit
+  Q       - zoom in
+  R       - zoom out
+  A,D,W,S - Left, Right, Up, Down
+  Space   - reset
+  Escape  - quit
 ```
 
 ## Output:
