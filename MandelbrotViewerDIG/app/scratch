@@ -1,0 +1,297 @@
+data GLMatrix a =
+     GLMatrix !a !a !a !a
+              !a !a !a !a
+              !a !a !a !a
+              !a !a !a !a
+                deriving Eq
+
+instance PrintfArg a => Show (GLMatrix a) where
+  show (GLMatrix m11 m12 m13 m14
+                 m21 m22 m23 m24
+                 m31 m32 m33 m34
+                 m41 m42 m43 m44) =
+    let matrix = "[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n\
+                 \[ %v %v %v %v ]\n"
+    in printf matrix m11 m12 m13 m14
+                     m21 m22 m23 m24
+                     m31 m32 m33 m34
+                     m41 m42 m43 m44
+
+statePassive :: Double -> SF AppInput Double
+statePassive k0 =
+  switch sf cont
+    where
+         sf = proc input -> do
+            time   <- constant k0 -< ()
+            zoomIn <- pressHoldSpace -< input
+            pos    <- pressHoldLeft  -< input                        
+            returnA  -< (time, zoomIn `tag` time):: (Double, Event Double)
+            --returnA  -< (time, DT.trace ("statePassive\n" ++ "time :" ++ show time ++ "\n") $ zoomIn `tag` time):: (Double, Event Double)
+         cont x = stateTriggered (x)
+
+stateTriggered :: Game -> SF AppInput Game
+stateTriggered (Game k0 _) =
+  switch sf cont
+    where
+         sf = proc input -> do
+            time     <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+                        (k0 +) ^<< integral <<< constant 0.1 -< ()
+            zoomIn   <- keyReleasedSpace -< input
+            pos      <- keyReleasedLeft  -< input                        
+            returnA  -< (Game time p0, zoomIn `tag` Game time p0):: (Game, Event Game)
+         cont x = statePassive (x)
+
+statePassive :: Game -> SF AppInput Game
+statePassive (Game k0 p0) =
+  switch sf cont
+    where
+         sf = proc input -> do
+            time    <- constant k0 -< ()
+            pos     <- constant p0 -< ()
+            zoomE   <- pressHoldSpace -< input
+            moveE   <- pressHoldLeft  -< input                        
+            -- returnA -< (Game time pos, (lMerge zoomE moveE) `tag` Game time pos) :: (Game, Event Game)
+            let retA = if | isEvent(zoomE)     -> (Game time pos, (lMerge zoomE moveE) `tag` Game time pos) :: (Game, Event Game)
+                          | otherwise -> (Game time pos, (lMerge zoomE moveE) `tag` Game time pos) :: (Game, Event Game)
+            returnA  -< retA
+         cont x = stateTriggered (x)
+
+stateTriggered :: Game -> SF AppInput Game
+stateTriggered (Game k0 p0) =
+  switch sf cont
+    where
+         -- dt = 0.1
+         sf = proc input -> do
+            
+            -- time <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+            --                 (k0 +) ^<< integral <<< constant 0.1 -< ()
+            -- pressHoldLeftE  <- (keyPressHold (SDL.ScancodeLeft, True)) -< input
+            pressHoldLeftE  <- pressHoldLeft  -< input
+            pressHoldSpaceE <- pressHoldSpace -< input
+            --pressLeftE  <- keyReleasedLeft  -< input                        
+            pressLeftE  <- keyPressed SDL.ScancodeLeft  -< input
+            let dt = if | isEvent pressLeftE      ->  1.0
+                        | isEvent pressHoldLeftE  -> -1.1
+                        | isEvent pressHoldSpaceE ->  0.1
+                        | otherwise ->  0.1
+            time <- (k0 +) ^<< integral -< dt
+            -- pressHoldLeftE  <- pressHoldLeft  -< input
+            -- let dp   = if | isEvent pressHoldLeftE -> 0.1
+            --               | otherwise              -> 0.0
+            --dp' <- k0
+            --dp = (0.1, 0.0)
+            pos <- (p0 +) ^<< integral <<< constant (0.1, 0.0) -< ()
+            -- pos'<- (p0 +) ^<< integral <<< constant (pd, 0.0)  -< ()
+            --   where
+            --     pd = 0.1
+            --pos' <- (p0 +) ^<< integral <<< constant dp -< ()
+            -- pos          <- DT.trace ("p0: " ++ show p0 ++ "\n") $
+            --                 (p0 +) ^<< integral <<< constant (0.1, 0.0) -< ()
+            keyRelLeftE  <- keyReleasedLeft  -< input                        
+            keyRelSpaceE <- keyReleasedSpace -< input
+            returnA      -< (Game time pos, (lMerge keyRelSpaceE keyRelLeftE) `tag` Game time pos) :: (Game, Event Game)
+            where
+              --pressHoldLeftE  <- pressHoldLeft  -< input
+              dt e = if | isEvent e -> 0.1
+                        | otherwise -> 0.0
+         cont x = statePassive (x)
+
+
+updateTime :: Double -> SF AppInput Double
+updateTime k0 = proc input -> do
+  -- switch sf cont
+  --   where
+  --        sf = proc input -> do
+            -- time            <- constant k0 -< ()
+            pressHoldSpaceE <- pressHoldSpace -< input
+            -- k <- (k0 +) ^<< integral -<
+            --      foldl (+) 0.0 $ mapMaybe checkKey [1]
+            --     checkKey (SDL.KeyUp (SDL.Keysym SDL.SDLK_UP    _ _)) =
+            --       Just $ 0.1
+            --     -- checkKey (SDL.KeyUp (SDL.Keysym SDL.SDLK_LEFT  _ _)) =
+            --     --   Just $ vector2 (-32)   0x
+            --     -- checkKey (SDL.KeyUp (SDL.Keysym SDL.SDLK_DOWN  _ _)) =
+            --     --   Just $ vector2    0   32
+            --     -- checkKey (SDL.KeyUp (SDL.Keysym SDL.SDLK_RIGHT _ _)) =
+            --     --   Just $ vector2   32    0
+            --     checkKey _ = Nothing
+            pressHoldLeftE  <- pressHoldLeft  -< input
+            pressLeftE      <- keyReleasedLeft  -< input                        
+            -- pressLeftE  <- keyPressed SDL.ScancodeLeft  -< input
+            let dt = if | isEvent pressLeftE      ->  1.0
+                        | isEvent pressHoldLeftE  -> -1.1
+                        | isEvent pressHoldSpaceE ->  0.1
+                        | otherwise ->  0.0
+            time <- (k0 +) ^<< integral -< dt
+
+            returnA -< (time, pressHoldSpaceE `tag` time) :: (Double, Event Double)
+            -- where
+            --   checkKey 1   = Just 0.0
+            --   checkKey _   = Nothing
+         --cont x = updateTime' (x)
+
+sfTest :: Double -> SF AppInput Double
+sfTest k0 =
+  switch sf cont
+    where
+      sf = proc input -> do
+        pressHoldSpaceE <- pressHoldSpace -< input
+        pressHoldLeftE  <- pressHoldLeft  -< input
+        returnA -< (k0, pressHoldSpaceE `tag` k0) :: (Double, Event Double)
+      cont x = if | isEvent pressHoldSpaceE -> contSF1 (x)
+                  | isEvent pressHoldLeftE  -> contSF1 (x)
+                  | otherwise -> initTime (x)
+  
+updateTime' :: Double -> SF AppInput Double
+updateTime' k0 =
+  switch sf cont
+    where
+         -- dt = 0.1
+         sf = proc input -> do
+            -- time <- DT.trace ("k0: " ++ show k0 ++ "\n") $
+            --                 (k0 +) ^<< integral <<< constant 0.1 -< ()
+            -- pressHoldLeftE  <- (keyPressHold (SDL.ScancodeLeft, True)) -< input
+            pressHoldLeftE  <- pressHoldLeft  -< input
+            pressHoldSpaceE <- pressHoldSpace -< input
+            --pressLeftE  <- keyReleasedLeft  -< input                        
+            pressLeftE  <- keyPressed SDL.ScancodeLeft  -< input
+            let dt = if | isEvent pressLeftE      ->  1.0
+                        | isEvent pressHoldLeftE  -> -1.1
+                        | isEvent pressHoldSpaceE ->  0.1
+                        | otherwise ->  0.1
+            time <- (k0 +) ^<< integral -< dt
+            -- pressHoldLeftE  <- pressHoldLeft  -< input
+            -- let dp   = if | isEvent pressHoldLeftE -> 0.1
+            --               | otherwise              -> 0.0
+            --dp' <- k0
+            --dp = (0.1, 0.0)
+            -- pos <- (p0 +) ^<< integral <<< constant (0.1, 0.0) -< ()
+            -- pos'<- (p0 +) ^<< integral <<< constant (pd, 0.0)  -< ()
+            --   where
+            --     pd = 0.1
+            --pos' <- (p0 +) ^<< integral <<< constant dp -< ()
+            -- pos          <- DT.trace ("p0: " ++ show p0 ++ "\n") $
+            --                 (p0 +) ^<< integral <<< constant (0.1, 0.0) -< ()
+            keyRelLeftE  <- keyReleasedLeft  -< input                        
+            keyRelSpaceE <- keyReleasedSpace -< input
+            returnA      -< (time, (lMerge keyRelSpaceE keyRelLeftE) `tag` time) :: (Double, Event Double)
+            where
+              --pressHoldLeftE  <- pressHoldLeft  -< input
+              dt e = if | isEvent e -> 0.1
+                        | otherwise -> 0.0
+         cont x = initTime (x)
+
+updateTime :: Double -> SF AppInput Double
+updateTime k0 = proc input -> do
+  pressHoldSpaceE <- pressHoldSpace -< input
+  --pressHoldLeftE  <- pressHoldLeft  -< input
+  pressLeftE  <- keyPressed SDL.ScancodeLeft  -< input
+  pressHoldLeftE  <- keyPressHold (SDL.ScancodeLeft, True) -< input
+  --pressLeftE      <- keyReleasedLeft  -< input
+  let dt = if | isEvent pressLeftE      ->  0.1
+              | isEvent pressHoldLeftE  ->  0.1
+              | isEvent pressHoldSpaceE ->  0.1
+              | otherwise ->  0.0
+  time <- (k0 +) ^<< integral -< dt
+  returnA -< time
+
+initTime :: Double -> SF AppInput Double
+initTime k0 =
+  switch sf cont
+    where
+         sf = proc input -> do
+            time            <- constant k0 -< ()
+            pos             <- constant p0 -< ()
+            pressHoldSpaceE <- pressHoldSpace -< input
+         --   pressHoldLeftE  <- pressHoldLeft  -< input
+            returnA         -< (time, pressHoldSpaceE `tag` time) :: (Double, Event Double)
+         -- cont x = if | isEvent pressHoldSpaceE -> updateTime' (x)   
+         -- cont x pressHoldSpaceE = cont'
+         --   where
+         --     cont' = if | isEvent pressHoldSpaceE -> updateTime' (x)
+         --                | otherwise     -> stateTriggered'(x)
+         cont x = updateTime' (x)
+         -- cont x = if | pressHoldSpaceE -> initTime (x)
+         --             | otherwise -> initTime (x)
+
+{-# LANGUAGE MultiWayIf  #-}
+{-# LANGUAGE Arrows #-}
+import FRP.Yampa
+
+sfTest :: Double -> SF AppInput Double
+sfTest k0 = switch sf cont
+  where
+
+    sf = proc input -> do
+      pressHoldSpaceE <- pressHoldSpace -< input
+      pressHoldLeftE  <- pressHoldLeft  -< input
+      let res :: (Double, Event (), Event ())
+          res = (k0, pressHoldSpaceE, pressHoldLeftE)
+      returnA -< (k0, pressHoldSpaceE `tag` res)
+
+    cont (x,phse, phle) = if | isEvent phse -> contSF1 (x)
+                             | isEvent phle -> contSF2 (x)
+                             | otherwise    -> contSF3 (x)
+
+sfTest' :: Double -> SF AppInput Double
+sfTest' k0 = proc input -> do
+  pressHoldSpaceE <- pressHoldSpace -< input
+  pressHoldLeftE  <- pressHoldLeft  -< input
+  case (pressHoldSpaceE, pressHoldLeftE) of
+    (Event (), _)        -> contSF1 k0 -< input
+    (_,        Event ()) -> contSF2 k0 -< input
+    _                    -> returnA    -< k0
+
+data AppInput = AppInput
+
+pressHoldSpace = undefined
+pressHoldLeft = undefined
+contSF1 = undefined
+contSF2 = undefined
+contSF3 = undefined
+
+-- inpKeyPressed       :: AppInput -> Maybe Scancode
+-- edgeJust            :: SF (Maybe a) (Event a)
+--                 ^>> :: Arrow a => (b -> c) -> a c d -> a b d 
+--                     :: SF AppInput (Event a)
+-- filterE             :: (a -> Bool) -> Event a -> Event a
+-- filterE (code ==)   :: Event Scancode -> Event Scancode
+--                 >>^ :: Arrow a => a b c -> (c -> d) -> a b d 
+--                     :: SF AppInput (Event Scancode)
+-- tagWith             :: b -> Event a -> Event b
+-- tagWith ()          :: Event a -> Event ()
+--                 >>^ :: Arrow a => a b c -> (c -> d) -> a b d
+--                     :: SF AppInput (Event ())
+
+-- animate :: Text -> CInt -> CInt -> SF WinInput WinOutput -> IO ()
+-- game :: SF AppInput Game
+-- (>>^) :: Arrow a => a b c -> (c -> d) -> a b d
+-- Postcomposition with a pure function
+-- t :: Game -> Time
+-- (game >>^ t) :: SF AppInput Time
+-- handleExit :: SF AppInput Bool
+-- &&& :: a b c -> a b c' -> a b (c, c')
+-- Fanout: send the input to both argument arrows and combine their output.
+-- (game >>^ t) &&& handleExit) :: SF AppInput (Time, Bool)
+-- >>> :: Category cat => cat a b -> cat b c -> cat a c
+-- Left-to-right composition
+-- parseWinInput :: SF WinInput AppInput
+-- (parseWinInput >>> ((game >>^ t) &&& handleExit)) :: SF WinInput (Time, Bool)
+
+
+-- animate "Mandelbrot" 800 600 (parseWinInput >>> ((game >>^ t) &&& handleExit))
+--                                                   game :: SF AppInput Game
+--                                                       (>>^) :: Arrow a => a b c -> (c -> d) -> a b d
+--                                                            t :: Game -> Time
+--                                                  (game >>^ t) :: SF AppInput Time
+--                                                              (&&&) :: a b c -> a b c' -> a b (c, c')
+--                                                                   handleExit :: SF AppInput Bool
+--                                                 ((game >>^ t) &&& handleExit) :: SF AppInput (Time, Bool)
+--                                             >>> :: Category cat => cat a b -> cat b c -> cat a c
+--                               parseWinInput :: SF WinInput AppInput
+--                              (parseWinInput >>> ((game >>^ t) &&& handleExit)) :: SF WinInput (Time, Bool)
+-- animate :: Text -> CInt -> CInt -> SF WinInput WinOutput -> IO ()
+--                                  type WinOutput = (Double, Bool)
+--                                                                                               type Time      = Double

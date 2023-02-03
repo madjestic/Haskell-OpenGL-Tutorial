@@ -1,0 +1,100 @@
+name:                MandelbrotYampa
+version:             0.1.0.0
+synopsis:            Short description of your package
+homepage:            https://github.com/madjestic/MandelbrotYampa#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Vladimir Lopatin
+maintainer:          madjestic13@gmail.com
+copyright:           Vladimir Lopatin
+category:            graphics
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+description:         Please see the README on Github at <https://github.com/madjestic/MandelbrotYampa#readme>
+
+library
+  hs-source-dirs:        src
+  -- exposed-modules:       LoadShaders
+  --                      , Input
+  build-depends:         base
+                       , aeson               
+                       , aeson-pretty
+                       --, bearriver
+                       , Yampa              
+                       , bytestring
+                       , containers          
+                       , GLUtil              
+                       , ilist               
+                       , lens                
+                       , linear              
+                       , locators            
+                       , massiv          
+                       , OpenGL
+                       , random              
+                       , scientific          
+                       , simple-affine-space 
+                       , sdl2                
+                       , sort
+                       , split
+                       , store
+                       , text                
+                       , uuid                
+                       , vector
+  exposed-modules:                       
+                         Graphics.RedViz.LoadShaders
+                       , Graphics.RedViz.Input.Keyboard
+                       , Graphics.RedViz.Input.FRP.Yampa.AppInput
+  other-modules:        
+                         Paths_MandelbrotYampa
+                       , Graphics.RedViz
+                       , Graphics.RedViz.Backend
+                       , Graphics.RedViz.Camera
+                       , Graphics.RedViz.Controllable
+                       , Graphics.RedViz.Descriptor
+                       , Graphics.RedViz.Drawable
+                       , Graphics.RedViz.FromVector
+                       , Graphics.RedViz.Input.FRP.Yampa
+                       , Graphics.RedViz.Input.Mouse
+                       , Graphics.RedViz.Material
+                       , Graphics.RedViz.PGeo
+                       , Graphics.RedViz.Project.Model
+                       , Graphics.RedViz.Project.Project
+                       , Graphics.RedViz.Project.Utils
+                       , Graphics.RedViz.Rendering
+                       , Graphics.RedViz.Texture
+                       , Graphics.RedViz.Utils
+                       , Graphics.RedViz.VAO
+                       , Graphics.RedViz.Widget
+                     
+  default-language:    Haskell2010
+
+executable Mandelbrot
+  hs-source-dirs:        app
+  main-is:               Main.hs
+  ghc-options:           -threaded -rtsopts -with-rtsopts=-N
+  build-depends:         base
+                       , linear
+                       , OpenGL
+                       , sdl2  
+                       , text  
+                       , Yampa
+                       , dear-imgui
+                       , managed
+                       , MandelbrotYampa
+                       
+  default-language:      Haskell2010
+
+test-suite MandelbrotYampa-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , MandelbrotYampa
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/madjestic/MandelbrotYampa
+  
