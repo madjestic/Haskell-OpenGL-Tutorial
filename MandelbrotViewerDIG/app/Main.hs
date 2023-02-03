@@ -307,7 +307,7 @@ gameSession =
      returnA -< Game zoom pos
 
  -- < Animate > ------------------------------------------------------------
-type WinInput = Event SDL.EventPayload
+type WinInput  = Event SDL.EventPayload
 type WinOutput = ((Double, (Double, Double)), Bool)
 
 animate :: Text                   -- ^ window title
@@ -317,8 +317,8 @@ animate :: Text                   -- ^ window title
         -> IO ()
 animate title winWidth winHeight sf = do
     window <- openWindow title (winWidth, winHeight)
-
-    lastInteraction <- newMVar =<< SDL.time   
+    lastInteraction <- newMVar =<< SDL.time
+    z <- newMVar (0.0 :: Double)  
     -- Input Logic -----------------------------------------------------
     let senseInput _ = do
             currentTime <- SDL.time                          
@@ -328,21 +328,23 @@ animate title winWidth winHeight sf = do
             return (dt, Nothing)
     -- Output Logic -----------------------------------------------------
         renderOutput _ ((zoom, pos), shouldExit) = do
-            draw   window zoom pos
-            drawUI window
-            SDL.glSwapWindow window
+            drawAll window zoom pos z
             return shouldExit 
- 
     -- Reactimate -----------------------------------------------------
-    reactimate (return NoEvent) -- initialize
-               senseInput   
-               renderOutput
-               sf
-
+    reactimate
+      (return NoEvent) -- initialize
+      senseInput   
+      renderOutput
+      sf
     closeWindow window
 
-drawUI :: Window -> IO ()
-drawUI window = unlessQuit do
+drawAll :: Window -> Double -> (Double, Double) -> MVar Double -> IO ()
+drawAll window z0 p0 z = unlessQuit do
+  -- Render
+  z' <- readMVar z
+  draw window (z0 + z') p0
+
+  -- GUI
   -- Tell ImGui we're starting a new frame
   openGL3NewFrame
   sdl2NewFrame
@@ -356,28 +358,21 @@ drawUI window = unlessQuit do
     -- Add a button widget, and call 'putStrLn' when it's clicked
     button "Clickety Click" >>= \case
       False -> return ()
-      True  -> putStrLn "Ow!"
+        
+      True  -> do
+        z' <- takeMVar z
+        putMVar z $ z'+0.1
+        putStrLn "Ow!"
+
+  --putMVar z $ z'+0.1
 
   -- Show the ImGui demo window
   -- showDemoWindow
 
-  -- Render
-  -- let p0 = (0,0) :: (Double, Double)
-  --     z0 = 0     :: Double
-  -- (Descriptor triangles numIndices) <- initResources (verts p0) indices z0
-
-  -- GL.clearColor $= Color4 0 0 0 1
-  -- GL.clear [ColorBuffer]
-
-  -- bindVertexArrayObject $= Just triangles
-  -- drawElements Triangles numIndices GL.UnsignedInt nullPtr
-
   render
   openGL3RenderDrawData =<< getDrawData
 
-  --SDL.glSwapWindow window
-
-  --mainLoop window
+  SDL.glSwapWindow window
 
   where
     -- Process the event loop
