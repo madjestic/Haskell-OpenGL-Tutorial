@@ -27,7 +27,7 @@ A further development of [MandelbrotYampa](https://github.com/madjestic/Haskell-
 ```
 
 ## Output:
-![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.png)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotViewerDIG/output.png)
 
 ## Animated Output:
-![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotYampa/output.gif)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotViewerDIG/output.gif)
