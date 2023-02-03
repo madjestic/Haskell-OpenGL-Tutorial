@@ -30,4 +30,5 @@ A further development of [MandelbrotYampa](https://github.com/madjestic/Haskell-
 ![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotViewerDIG/output.png)
 
 ## Animated Output:
-![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotViewerDIG/output.gif)
+![](https://raw.github.com/madjestic/Haskell-OpenGL-Tutorial/master/MandelbrotViewerDIG/output.png)
+
