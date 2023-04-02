@@ -358,7 +358,6 @@ drawAll window z0 p0 z = unlessQuit do
     -- Add a button widget, and call 'putStrLn' when it's clicked
     button "Clickety Click" >>= \case
       False -> return ()
-        
       True  -> do
         z' <- takeMVar z
         putMVar z $ z'+0.1
