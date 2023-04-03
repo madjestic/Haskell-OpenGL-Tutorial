@@ -331,7 +331,6 @@ animate :: GLContext
         -> IO ()
 animate glContext window sf = do
   runManaged do
-    z <- liftIO $ newMVar (0.0 :: Double)
     -- Create an ImGui context
     _ <- managed $ bracket createContext destroyContext
     -- Initialize ImGui's SDL2 backend
@@ -343,7 +342,7 @@ animate glContext window sf = do
       reactimate
       (return NoEvent) -- initialize
       input
-      (output z)
+      output
       sf
     liftIO $ closeWindow window
     -- Input Logic -----------------------------------------------------
@@ -356,17 +355,17 @@ animate glContext window sf = do
         --return (dt, Event . SDL.eventPayload <$> mEvent)
         return (dt, Nothing)
     -- Output Logic -----------------------------------------------------
-      output z _ (game, shouldExit) = do
-        drawAll window game z
+      output _ (game, shouldExit) = do
+        drawAll window game
         return shouldExit
 
-drawAll :: Window -> Game -> MVar Double -> IO ()
-drawAll window game z = unlessQuit do
+drawAll :: Window -> Game -> IO ()
+drawAll window game = unlessQuit do
   let
     z0 = zoom game
     p0 = pos  game
   -- Render
-  z' <- readMVar z
+  z' <- readMVar $ zoomMVar game
   draw window (z0 + z') p0
 
   -- GUI
@@ -385,8 +384,8 @@ drawAll window game z = unlessQuit do
       False -> return ()
         
       True  -> do
-        z' <- takeMVar z
-        putMVar z $ z'+0.1
+        z' <- takeMVar $ zoomMVar game
+        putMVar (zoomMVar game) $ z'+0.1
         putStrLn "Ow!"
 
   render
@@ -410,6 +409,15 @@ drawAll window game z = unlessQuit do
     isQuit event =
       SDL.eventPayload event == SDL.QuitEvent
 
+mainLoop :: Game -> SF AppInput Game
+mainLoop game0 = 
+  loopPre game0 $
+  proc (input, game) -> do
+    game1   <- returnA -< game0
+    returnA -< (game1, game1)
+  --   app1 <- appMain  app0 -< (input, game)
+  --   returnA -< (app1, app1)
+
 -- appMain :: Game -> SF (AppInput, Game) Game
 -- appMain game0 =
 --   proc (input, app1) -> do
@@ -426,16 +434,7 @@ drawAll window game z = unlessQuit do
     --                then (result, reset $> app0   { Appl._gui = app1 ^. intr . App.gui } )
     --                else (result, zE    $> result { Appl._gui = fromSelected app1 app' } )
 
-mainLoop :: Game -> SF AppInput Game
-mainLoop game0 = 
-  loopPre game0 $
-  proc (input, game) -> do
-    game1 <- returnA -< game0
-    returnA -< (game1, game1)
-  --   app1 <- appMain  app0 -< (input, game)
-  --   returnA -< (app1, app1)
-
--- < Main Function > ------------------------------------------------------
+    -- < Main Function > ------------------------------------------------------
 
 main :: IO ()
 main = do
