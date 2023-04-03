@@ -247,7 +247,7 @@ handleExit = quitEvent >>^ isEvent
   -- < Game Types > --------------------------------------------------------------
 data Game       = Game { zoom     :: Double
                        , pos      :: (Double, Double)
-                       --, zoomMVar :: MVar Double
+                       , zoomMVar :: MVar Double
                        } -- deriving (Generic, Show)
 
 -- instance Show (MVar Double) where
@@ -268,20 +268,21 @@ game = switch sf (\_ -> game)
   where
     sf =
       proc input -> do
-        gameState <- gameSession  -< input
+        game <- gameSession  -< input
         reset     <- keyInput (SDL.ScancodeSpace) "Pressed" -< input
-        returnA   -< (gameState, reset)
+        returnA   -< (game, reset)
 
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
     zoom <- updateZoom z0 -< input
     pos  <- updatePos  p0 -< input
-    returnA -< Game zoom pos
+    returnA -< undefined --Game zoom pos
 
  -- < Animate > ------------------------------------------------------------
-type WinInput  = Event SDL.EventPayload
-type WinOutput = ((Double, (Double, Double)), Bool)
+-- type WinInput  = Event SDL.EventPayload
+-- type WinOutput = (Game, Bool)
+-- type WinOutput = ((Double, (Double, Double)), Bool)
 
 -- animate :: GLContext
 --         -> SDL.Window
@@ -320,7 +321,9 @@ type WinOutput = ((Double, (Double, Double)), Bool)
 --       output
 --       sf
 --     liftIO $ closeWindow window
-  
+
+type WinInput  = Event SDL.EventPayload
+type WinOutput = (Game, Bool)
 
 animate :: GLContext
         -> SDL.Window
@@ -353,13 +356,15 @@ animate glContext window sf = do
         --return (dt, Event . SDL.eventPayload <$> mEvent)
         return (dt, Nothing)
     -- Output Logic -----------------------------------------------------
-      output z _ ((zoom, pos), shouldExit) = do
-        -- z <- newMVar (0.0 :: Double)
-        drawAll window zoom pos z
-        return shouldExit 
+      output z _ (game, shouldExit) = do
+        drawAll window game z
+        return shouldExit
 
-drawAll :: Window -> Double -> (Double, Double) -> MVar Double -> IO ()
-drawAll window z0 p0 z = unlessQuit do
+drawAll :: Window -> Game -> MVar Double -> IO ()
+drawAll window game z = unlessQuit do
+  let
+    z0 = zoom game
+    p0 = pos  game
   -- Render
   z' <- readMVar z
   draw window (z0 + z') p0
@@ -384,11 +389,6 @@ drawAll window z0 p0 z = unlessQuit do
         putMVar z $ z'+0.1
         putStrLn "Ow!"
 
-  --putMVar z $ z'+0.1
-
-  -- Show the ImGui demo window
-  -- showDemoWindow
-
   render
   openGL3RenderDrawData =<< getDrawData
 
@@ -409,7 +409,31 @@ drawAll window z0 p0 z = unlessQuit do
 
     isQuit event =
       SDL.eventPayload event == SDL.QuitEvent
-     
+
+-- appMain :: Game -> SF (AppInput, Game) Game
+-- appMain game0 =
+--   proc (input, app1) -> do
+--     returnA -< app1
+    -- app'        <- updateMainApp (fromApplication app0) -< (input, app1 ^. main)
+    -- reset       <- keyInput SDL.ScancodeSpace "Pressed" -< input
+    -- zE          <- keyInput SDL.ScancodeZ     "Pressed" -< input
+
+    -- let
+    --   result =
+    --     app1 { _main = app' }
+               
+    -- returnA     -< if isEvent reset 
+    --                then (result, reset $> app0   { Appl._gui = app1 ^. intr . App.gui } )
+    --                else (result, zE    $> result { Appl._gui = fromSelected app1 app' } )
+
+mainLoop :: Game -> SF AppInput Game
+mainLoop game0 = 
+  loopPre game0 $
+  proc (input, game) -> do
+    game1 <- returnA -< game0
+    returnA -< (game1, game1)
+  --   app1 <- appMain  app0 -< (input, game)
+  --   returnA -< (app1, app1)
 
 -- < Main Function > ------------------------------------------------------
 
@@ -418,8 +442,6 @@ main = do
   -- Initialize SDL
   initializeAll
   
-  let z'' = newMVar ("" :: String) --(0.0 :: Double)
-
   runManaged do
     -- Create a window using SDL. As we're using OpenGL, we need to enable OpenGL too.
     window <- do
@@ -429,5 +451,17 @@ main = do
 
     -- Create an OpenGL context
     glContext <- managed $ bracket (glCreateContext window) glDeleteContext
+    z <- liftIO $ newMVar (0.0 :: Double)
 
-    liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+    --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+    let
+      initGame =
+        Game
+        {
+          zoom = 0.0 :: Double
+        , pos  = (0.0, 0.0) :: (Double, Double)
+        , zoomMVar = z
+        }
+      
+    --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+    liftIO $ animate glContext window (parseWinInput (800,600) >>> mainLoop initGame &&& handleExit )
