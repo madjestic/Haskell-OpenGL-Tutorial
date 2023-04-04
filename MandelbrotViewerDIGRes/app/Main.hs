@@ -322,14 +322,18 @@ gameSession =
 --       sf
 --     liftIO $ closeWindow window
 
-type WinInput  = Event SDL.EventPayload
+type WinInput  = (Event SDL.EventPayload)
 type WinOutput = (Game, Bool)
 
 animate :: GLContext
         -> SDL.Window
+        -> MVar Bool
         -> SF WinInput WinOutput  -- ^ signal function to animate
         -> IO ()
-animate glContext window sf = do
+animate glContext window switch0 sf = do
+  -- let (game', _) = head $ embed sf (NoEvent, [(0.0, Nothing)])
+  -- print $ zoom game'
+
   runManaged do
     -- Create an ImGui context
     _ <- managed $ bracket createContext destroyContext
@@ -337,6 +341,8 @@ animate glContext window sf = do
     _ <- managed_ $ bracket_ (sdl2InitForOpenGL window glContext) sdl2Shutdown
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL3Init openGL3Shutdown
+    --inputSwitch' <- liftIO $ tryReadMVar switch0
+    
     -- Reactimate -----------------------------------------------------
     liftIO $
       reactimate
@@ -348,17 +354,33 @@ animate glContext window sf = do
     -- Input Logic -----------------------------------------------------
     where
       input _ = do
-        lastInteraction <- newMVar =<< SDL.time
-        currentTime <- SDL.time                          
-        dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
-        --mEvent <- SDL.pollEvent                          
-        --return (dt, Event . SDL.eventPayload <$> mEvent)
-        return (dt, Nothing)
+        switch0' <- readMVar switch0
+        case switch0' of
+          False -> do
+            lastInteraction <- newMVar =<< SDL.time
+            currentTime <- SDL.time                          
+            dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
+            return (dt, Nothing)
+          True -> do
+            lastInteraction <- newMVar =<< SDL.time
+            currentTime <- SDL.time                          
+            dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
+            mEvent <- SDL.pollEvent                          
+            return (dt, Event . SDL.eventPayload <$> mEvent)
+
     -- Output Logic -----------------------------------------------------
       output _ (game, shouldExit) = do
+        readMVar switch0 >>= print
         drawAll window game
-        return shouldExit
-
+        z' <- readMVar $ zoomMVar game
+        print $ "z' :" ++ show z'
+        if z' > 0.3
+          then do
+          _ <- swapMVar switch0 True
+          return shouldExit
+          else do
+          return shouldExit
+  
 drawAll :: Window -> Game -> IO ()
 drawAll window game = unlessQuit do
   let
@@ -385,8 +407,9 @@ drawAll window game = unlessQuit do
         
       True  -> do
         z' <- takeMVar $ zoomMVar game
-        putMVar (zoomMVar game) $ z'+0.1
+        putMVar (zoomMVar game) $ z' + 0.1
         putStrLn "Ow!"
+        
 
   render
   openGL3RenderDrawData =<< getDrawData
@@ -451,8 +474,12 @@ main = do
     -- Create an OpenGL context
     glContext <- managed $ bracket (glCreateContext window) glDeleteContext
     z <- liftIO $ newMVar (0.0 :: Double)
+    switch' <- liftIO $ newMVar False
+    --_ <- liftIO $ swapMVar switch' True
+    --foo <- liftIO $ readMVar switch'
+    --liftIO $ print foo
 
-    --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+         --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
     let
       initGame =
         Game
@@ -463,4 +490,4 @@ main = do
         }
       
     --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
-    liftIO $ animate glContext window (parseWinInput (800,600) >>> mainLoop initGame &&& handleExit )
+    liftIO $ animate glContext window switch' (parseWinInput (800,600) >>> mainLoop initGame &&& handleExit )
