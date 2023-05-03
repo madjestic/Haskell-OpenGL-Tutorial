@@ -1,0 +1,17 @@
+cabal-version:        3.0
+name:                 tutorial00-cabalized
+version:              0.2.0.0
+license:              BSD-3-Clause
+license-file:         LICENSE
+author:               madiestic
+maintainer:           madjestic13@gmail.com
+copyright:            Vladimir Lopatin
+extra-source-files:   CHANGELOG.md
+
+executable tutorial00
+    main-is:          Main.hs
+    build-depends:    base ^>=4.16.4.0
+                    , GLFW-b
+                    , OpenGL
+    hs-source-dirs:   app
+    default-language: Haskell2010
