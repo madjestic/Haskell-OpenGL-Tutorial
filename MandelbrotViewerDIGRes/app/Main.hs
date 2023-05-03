@@ -30,7 +30,8 @@ import Graphics.RedViz.Input.Keyboard
 import Graphics.RedViz.Input.FRP.Yampa.AppInput
 import Graphics.RedViz.Rendering hiding (render)
 import Graphics.RedViz.Descriptor ( Descriptor(..) )
-import GHC.Generics  
+import GHC.Generics
+import System.IO.Unsafe  
 
 import SDL                             hiding (Point, Event, Timer)
 
@@ -323,14 +324,14 @@ gameSession =
 --     liftIO $ closeWindow window
 
 type WinInput  = (Event SDL.EventPayload)
-type WinOutput = (Game, Bool)
+type WinOutput = ((Game, ()), Bool)
 
 animate :: GLContext
         -> SDL.Window
         -> MVar Bool
         -> SF WinInput WinOutput  -- ^ signal function to animate
         -> IO ()
-animate glContext window switch0 sf = do
+animate glContext window switchInput sf = do
   -- let (game', _) = head $ embed sf (NoEvent, [(0.0, Nothing)])
   -- print $ zoom game'
 
@@ -341,7 +342,6 @@ animate glContext window switch0 sf = do
     _ <- managed_ $ bracket_ (sdl2InitForOpenGL window glContext) sdl2Shutdown
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL3Init openGL3Shutdown
-    --inputSwitch' <- liftIO $ tryReadMVar switch0
     
     -- Reactimate -----------------------------------------------------
     liftIO $
@@ -354,8 +354,8 @@ animate glContext window switch0 sf = do
     -- Input Logic -----------------------------------------------------
     where
       input _ = do
-        switch0' <- readMVar switch0
-        case switch0' of
+        switch <- readMVar switchInput
+        case switch of
           False -> do
             lastInteraction <- newMVar =<< SDL.time
             currentTime <- SDL.time                          
@@ -369,14 +369,14 @@ animate glContext window switch0 sf = do
             return (dt, Event . SDL.eventPayload <$> mEvent)
 
     -- Output Logic -----------------------------------------------------
-      output _ (game, shouldExit) = do
-        readMVar switch0 >>= print
+      output _ ((game, foo), shouldExit) = do
+        readMVar switchInput >>= print
         drawAll window game
         z' <- readMVar $ zoomMVar game
         print $ "z' :" ++ show z'
         if z' > 0.3
           then do
-          _ <- swapMVar switch0 True
+          _ <- swapMVar switchInput True
           return shouldExit
           else do
           return shouldExit
@@ -432,19 +432,29 @@ drawAll window game = unlessQuit do
     isQuit event =
       SDL.eventPayload event == SDL.QuitEvent
 
-mainLoop :: Game -> SF AppInput Game
-mainLoop game0 = 
+mainLoop :: (Game, ()) -> SF AppInput (Game, ())
+mainLoop (game0, _) = 
   loopPre game0 $
   proc (input, game) -> do
-    game1   <- returnA -< game0
-    returnA -< (game1, game1)
+    --game1   <- returnA -< game0
+    --let foo  = unsafePerformIO $ print "DEBUG!!!"
+    --foo <- returnA -< unsafePerformIO $ print "SUKA!!!"
+    --x <- returnA -< unsafePerformIO $ newMVar (0.0 :: Double)
+    x <- returnA -< unsafePerformIO $ print "SUKA!!!" >> swapMVar (zoomMVar game) (-1.0 :: Double)
+    --(game1, bar)   <- appMain game0 -< (input, game)
+    let game1 = game { zoom = x }
+    returnA -< ((game1, ()), game1)
   --   app1 <- appMain  app0 -< (input, game)
   --   returnA -< (app1, app1)
 
--- appMain :: Game -> SF (AppInput, Game) Game
--- appMain game0 =
---   proc (input, app1) -> do
---     returnA -< app1
+appMain :: Game -> SF (AppInput, Game) (Game, ())
+appMain game0 = 
+  proc (input, game) -> do
+    let
+      test = unsafePerformIO $ newMVar (0.0 :: Double)
+      foo  = unsafePerformIO $ print "DEBUG!"
+             --_ <- returnA (unsafePerformIO (print "") )   -< game --unsafePerformIO $ putStrLn "suka"
+    returnA -< (game, foo)
     -- app'        <- updateMainApp (fromApplication app0) -< (input, app1 ^. main)
     -- reset       <- keyInput SDL.ScancodeSpace "Pressed" -< input
     -- zE          <- keyInput SDL.ScancodeZ     "Pressed" -< input
@@ -474,12 +484,8 @@ main = do
     -- Create an OpenGL context
     glContext <- managed $ bracket (glCreateContext window) glDeleteContext
     z <- liftIO $ newMVar (0.0 :: Double)
-    switch' <- liftIO $ newMVar False
-    --_ <- liftIO $ swapMVar switch' True
-    --foo <- liftIO $ readMVar switch'
-    --liftIO $ print foo
+    switchInput <- liftIO $ newMVar False
 
-         --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
     let
       initGame =
         Game
@@ -488,6 +494,7 @@ main = do
         , pos  = (0.0, 0.0) :: (Double, Double)
         , zoomMVar = z
         }
+      initGame' = (initGame, ())
       
-    --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
-    liftIO $ animate glContext window switch' (parseWinInput (800,600) >>> mainLoop initGame &&& handleExit )
+      --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+    liftIO $ animate glContext window switchInput (parseWinInput (800,600) >>> mainLoop initGame' &&& handleExit )
