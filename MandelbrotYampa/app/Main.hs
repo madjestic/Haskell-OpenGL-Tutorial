@@ -176,7 +176,7 @@ animate title winWidth winHeight sf = do
     let senseInput _ = do
             currentTime <- SDL.time                          
             dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
-            mEvent <- SDL.pollEvent                          
+            mEvent <- SDL.pollEvent
             return (dt, Event . SDL.eventPayload <$> mEvent) 
     -- Output Logic -----------------------------------------------------
         renderOutput _ (zoom, shouldExit) = do
