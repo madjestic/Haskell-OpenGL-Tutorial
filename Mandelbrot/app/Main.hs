@@ -8,7 +8,7 @@ module Main where
 
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
-import Graphics.GLUtil (setUniform)
+-- import Graphics.GLUtil (setUniform)
 import Graphics.UI.GLUT.Debugging (reportErrors)
 import Control.Monad (forever)
 import System.Exit (exitSuccess)
