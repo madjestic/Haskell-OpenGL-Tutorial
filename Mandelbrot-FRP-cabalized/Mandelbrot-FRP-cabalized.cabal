@@ -12,6 +12,10 @@ executable Mandelbrot
     main-is:          Main.hs
     other-modules:
                       Graphics.RedViz.GLUtil
+                      Graphics.RedViz.GLUtil.JuicyTextures
+                      Graphics.RedViz.GLUtil.Textures
+                      Graphics.RedViz.GLUtil.TypeMapping
+                      NGL.LoadShaders
     build-depends:    base ^>=4.16.4.0
                     , OpenGL
                     , linear
