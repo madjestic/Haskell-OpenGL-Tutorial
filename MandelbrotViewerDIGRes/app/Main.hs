@@ -4,7 +4,6 @@
 {-# LANGUAGE Arrows #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric #-}
---{-# LANGUAGE FlexibleInstances #-}
 
 module Main where 
 
@@ -28,9 +27,6 @@ import DearImGui.SDL
 import DearImGui.SDL.OpenGL
 import Graphics.RedViz.Input.Keyboard
 import Graphics.RedViz.Input.FRP.Yampa.AppInput
-import Graphics.RedViz.Rendering hiding (render)
-import Graphics.RedViz.Descriptor ( Descriptor(..) )
-import GHC.Generics
 import System.IO.Unsafe  
 
 import SDL                             hiding (Point, Event, Timer)
@@ -38,6 +34,49 @@ import SDL                             hiding (Point, Event, Timer)
 import Debug.Trace as DT
 
 -- < Rendering > ---------------------------------------------------------------
+openWindow :: Text -> (CInt, CInt) -> IO SDL.Window
+openWindow title (sizex,sizey) =
+  do
+    SDL.initialize [SDL.InitVideo]
+    SDL.HintRenderScaleQuality $= SDL.ScaleLinear
+    do renderQuality <- SDL.get SDL.HintRenderScaleQuality
+       when (renderQuality /= SDL.ScaleLinear) $
+         putStrLn "Warning: Linear texture filtering not enabled!"
+
+    let config = OpenGLConfig { glColorPrecision = V4 8 8 8 0
+                              , glDepthPrecision = 24
+                              , glStencilPrecision = 8
+                              , glMultisampleSamples = 4
+                              , glProfile = Core Normal 4 5
+                              }
+
+                              -- defaultOpenGL = OpenGLConfig
+                              --   { glColorPrecision = V4 8 8 8 0
+                              --   , glDepthPrecision = 24
+                              --   , glStencilPrecision = 8
+                              --   , glMultisampleSamples = 1
+                              --   , glProfile = Compatibility Normal 2 1
+                              --   }                 
+
+    depthFunc $= Just Less
+
+    window <- SDL.createWindow
+              title
+              SDL.defaultWindow
+              { SDL.windowInitialSize = V2 sizex sizey
+              , SDL.windowGraphicsContext = OpenGLContext config
+              }      
+
+    SDL.showWindow window
+    _ <- SDL.glCreateContext window
+
+    return window
+
+closeWindow :: SDL.Window -> IO ()
+closeWindow window = do
+    SDL.destroyWindow window
+    SDL.quit
+
 draw :: SDL.Window -> Double -> (Double, Double) -> IO ()
 draw window z0 p0 = do
       (Descriptor triangles numIndices) <- initResources (verticies p0) indices z0
@@ -50,6 +89,8 @@ draw window z0 p0 = do
       -- SDL.glSwapWindow window
 
 -- < OpenGL > -------------------------------------------------------------
+data Descriptor =
+     Descriptor VertexArrayObject NumArrayIndices
 
 verticies :: (Double, Double) -> [GLfloat]
 verticies p0 =
@@ -70,7 +111,6 @@ indices =
     1, 2, 3  -- Second Triangle
   ]
 
--- TODO: try moving init Descriptor outside of the draw loop
 initResources :: [GLfloat] -> [GLuint] -> Double -> IO Descriptor
 initResources vs idx z0 =  
   do
@@ -238,25 +278,17 @@ movePos p0 v0 =
 handleExit :: SF AppInput Bool
 handleExit = quitEvent >>^ isEvent
 
---bar :: SF AppInput (MVar Double)
--- bar :: _  
--- bar = do
---   proc _ -> do
---     foo = newMVar (0.0 :: Double)
---     returnA -< foo
+-- < Game Types > --------------------------------------------------------------
+data Game       = Game { zoom :: Double
+                       , pos  :: (Double, Double)
+                       , zoomMVar :: MVar Double }
 
-  -- < Game Types > --------------------------------------------------------------
-data Game       = Game { zoom     :: Double
-                       , pos      :: (Double, Double)
-                       , zoomMVar :: MVar Double
-                       } -- deriving (Generic, Show)
+instance Show Game where
+  show (Game z p _) = "Game : " ++ show z ++ show p
 
--- instance Show (MVar Double) where
---   show _ = ""
-
-  -- < Game Logic > ---------------------------------------------------------
+-- < Game Logic > ---------------------------------------------------------
 z0 :: Double
-z0 =  0.0
+z0 = -3.9053007385999066
 
 p0 :: (Double, Double)
 p0 = (-0.15,-0.1)
@@ -266,64 +298,21 @@ v0 = (0,0)
 
 game :: SF AppInput Game
 game = switch sf (\_ -> game)        
-  where
-    sf =
-      proc input -> do
-        game <- gameSession  -< input
-        reset     <- keyInput (SDL.ScancodeSpace) "Pressed" -< input
-        returnA   -< (game, reset)
+     where sf =
+             proc input -> do
+               gameState <- gameSession  -< input
+               reset     <- keyInput (SDL.ScancodeSpace) "Pressed" -< input
+               returnA   -< (gameState, reset)
 
 gameSession :: SF AppInput Game
 gameSession =
   proc input -> do
-    zoom <- updateZoom z0 -< input
-    pos  <- updatePos  p0 -< input
-    returnA -< undefined --Game zoom pos
+     zoom <- updateZoom z0 -< input
+     pos  <- updatePos  p0 -< input
+     returnA -< Game zoom pos undefined
 
  -- < Animate > ------------------------------------------------------------
--- type WinInput  = Event SDL.EventPayload
--- type WinOutput = (Game, Bool)
--- type WinOutput = ((Double, (Double, Double)), Bool)
-
--- animate :: GLContext
---         -> SDL.Window
---         -> SF WinInput WinOutput  -- ^ signal function to animate
---         -> IO ()
--- animate glContext window sf = do
---   --z <- newMVar (0.0 :: Double)
---   --let z = (0.0 :: Double)
---   runManaged do
---     z <- liftIO $ newMVar (0.0 :: Double)
---     -- Create an ImGui context
---     _ <- managed $ bracket createContext destroyContext
---     -- Initialize ImGui's SDL2 backend
---     _ <- managed_ $ bracket_ (sdl2InitForOpenGL window glContext) sdl2Shutdown
---     -- Initialize ImGui's OpenGL backend
---     _ <- managed_ $ bracket_ openGL3Init openGL3Shutdown
---     -- Input Logic -----------------------------------------------------
---     let
---       input _ = do
---         lastInteraction <- newMVar =<< SDL.time
---         currentTime <- SDL.time                          
---         dt <- (currentTime -) <$> swapMVar lastInteraction currentTime
---         --mEvent <- SDL.pollEvent                          
---         --return (dt, Event . SDL.eventPayload <$> mEvent)
---         return (dt, Nothing)
---     -- Output Logic -----------------------------------------------------
---       output _ ((zoom, pos), shouldExit) = do
---         -- z <- newMVar (0.0 :: Double)
---         drawAll window zoom pos z
---         return shouldExit 
---     -- Reactimate -----------------------------------------------------
---     liftIO $
---       reactimate
---       (return NoEvent) -- initialize
---       input   
---       output
---       sf
---     liftIO $ closeWindow window
-
-type WinInput  = (Event SDL.EventPayload)
+type WinInput  = Event SDL.EventPayload
 type WinOutput = ((Game, ()), Bool)
 
 animate :: GLContext
@@ -332,9 +321,6 @@ animate :: GLContext
         -> SF WinInput WinOutput  -- ^ signal function to animate
         -> IO ()
 animate glContext window switchInput sf = do
-  -- let (game', _) = head $ embed sf (NoEvent, [(0.0, Nothing)])
-  -- print $ zoom game'
-
   runManaged do
     -- Create an ImGui context
     _ <- managed $ bracket createContext destroyContext
@@ -380,7 +366,7 @@ animate glContext window switchInput sf = do
           return shouldExit
           else do
           return shouldExit
-  
+
 drawAll :: Window -> Game -> IO ()
 drawAll window game = unlessQuit do
   let
@@ -431,7 +417,7 @@ drawAll window game = unlessQuit do
 
     isQuit event =
       SDL.eventPayload event == SDL.QuitEvent
-
+    
 mainLoop :: (Game, ()) -> SF AppInput (Game, ())
 mainLoop (game0, _) = 
   loopPre game0 $
@@ -447,33 +433,13 @@ mainLoop (game0, _) =
   --   app1 <- appMain  app0 -< (input, game)
   --   returnA -< (app1, app1)
 
-appMain :: Game -> SF (AppInput, Game) (Game, ())
-appMain game0 = 
-  proc (input, game) -> do
-    let
-      test = unsafePerformIO $ newMVar (0.0 :: Double)
-      foo  = unsafePerformIO $ print "DEBUG!"
-             --_ <- returnA (unsafePerformIO (print "") )   -< game --unsafePerformIO $ putStrLn "suka"
-    returnA -< (game, foo)
-    -- app'        <- updateMainApp (fromApplication app0) -< (input, app1 ^. main)
-    -- reset       <- keyInput SDL.ScancodeSpace "Pressed" -< input
-    -- zE          <- keyInput SDL.ScancodeZ     "Pressed" -< input
-
-    -- let
-    --   result =
-    --     app1 { _main = app' }
-               
-    -- returnA     -< if isEvent reset 
-    --                then (result, reset $> app0   { Appl._gui = app1 ^. intr . App.gui } )
-    --                else (result, zE    $> result { Appl._gui = fromSelected app1 app' } )
-
-    -- < Main Function > ------------------------------------------------------
+-- < Main Function > ------------------------------------------------------
 
 main :: IO ()
 main = do
   -- Initialize SDL
   initializeAll
-  
+
   runManaged do
     -- Create a window using SDL. As we're using OpenGL, we need to enable OpenGL too.
     window <- do
@@ -495,6 +461,5 @@ main = do
         , zoomMVar = z
         }
       initGame' = (initGame, ())
-      
-      --liftIO $ animate glContext window (parseWinInput (800,600) >>> ( ((game >>^ zoom) &&& (game >>^ pos) ) &&& handleExit))
+
     liftIO $ animate glContext window switchInput (parseWinInput (800,600) >>> mainLoop initGame' &&& handleExit )

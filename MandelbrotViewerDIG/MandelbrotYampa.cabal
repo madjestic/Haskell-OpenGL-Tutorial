@@ -20,12 +20,14 @@ library
   build-depends:         base
                        , aeson               
                        , aeson-pretty
+                       , array
                        --, bearriver
                        , Yampa              
                        , bytestring
                        , containers          
-                       , GLUtil              
-                       , ilist               
+                       --, GLUtil              
+                       , ilist
+                       , JuicyPixels
                        , lens                
                        , linear              
                        , locators            

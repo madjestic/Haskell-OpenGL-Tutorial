@@ -20,12 +20,14 @@ library
   build-depends:         base
                        , aeson               
                        , aeson-pretty
+                       , array
                        --, bearriver
                        , Yampa              
                        , bytestring
                        , containers          
-                       , GLUtil              
-                       , ilist               
+                       --, GLUtil              
+                       , ilist
+                       , JuicyPixels
                        , lens                
                        , linear              
                        , locators            
@@ -45,15 +47,11 @@ library
                          Graphics.RedViz.LoadShaders
                        , Graphics.RedViz.Input.Keyboard
                        , Graphics.RedViz.Input.FRP.Yampa.AppInput
-                       , Graphics.RedViz.Rendering
-                       , Graphics.RedViz.Descriptor
-                       
-  other-modules:        
-                         Paths_MandelbrotYampa
                        , Graphics.RedViz
                        , Graphics.RedViz.Backend
                        , Graphics.RedViz.Camera
                        , Graphics.RedViz.Controllable
+                       , Graphics.RedViz.Descriptor
                        , Graphics.RedViz.Drawable
                        , Graphics.RedViz.FromVector
                        , Graphics.RedViz.Input.FRP.Yampa
@@ -63,6 +61,7 @@ library
                        , Graphics.RedViz.Project.Model
                        , Graphics.RedViz.Project.Project
                        , Graphics.RedViz.Project.Utils
+                       , Graphics.RedViz.Rendering
                        , Graphics.RedViz.Texture
                        , Graphics.RedViz.Utils
                        , Graphics.RedViz.VAO
@@ -98,4 +97,3 @@ test-suite MandelbrotYampa-test
 source-repository head
   type:     git
   location: https://github.com/madjestic/MandelbrotYampa
-  
