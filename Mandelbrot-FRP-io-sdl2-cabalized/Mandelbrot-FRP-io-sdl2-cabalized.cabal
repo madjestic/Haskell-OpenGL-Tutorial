@@ -10,7 +10,10 @@ extra-source-files:   CHANGELOG.md
 
 executable Mandelbrot
     main-is:          Main.hs
-    -- other-modules:
+    other-modules:
+                      Input
+                    , NGL.LoadShaders
+                    , Types
     --                   Graphics.RedViz.GLUtil
     build-depends:    base ^>=4.16.4.0
                     , OpenGL
